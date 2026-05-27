@@ -1,0 +1,93 @@
+mode: Wide Free Net
+autonomy_enabled: true
+schedule_frequency: 6h
+source_discovery_enabled: true
+discovery_graph_enabled: true
+max_discovery_depth: 3
+max_same_source_family_percent: 20
+max_same_domain_percent: 15
+exploration_weight: 0.35
+exploitation_weight: 0.65
+boost_underrepresented_categories: true
+auto_approve_safe_sources: true
+heuristic_source_auto_approval_enabled: true
+heuristic_source_approval_limit: 260
+heuristic_opportunity_triage_enabled: true
+heuristic_opportunity_triage_limit: 220
+free_mode_only: true
+paid_mode_enabled: false
+qualification_mode: wide_net
+max_risk: medium
+source_candidate_min_score: 6
+opportunity_probability_min: 5
+min_ai_can_do_percent: 60
+reject_high_risk: true
+reject_upfront_payment: true
+reject_job_like_work: true
+reject_net_loss_possible: true
+max_openai_calls_per_run: 160
+max_candidates_per_run: 320
+max_sources_per_run: 55
+max_opportunities_per_run: 320
+approved_source_fetch_limit: 55
+search_provider: ManualQueryMode
+wide_net:
+  minimum_probability_score_1_to_10: 5
+  maximum_effort_score_1_to_10: 6
+  minimum_ai_can_do_percent: 60
+strict:
+  minimum_probability_score_1_to_10: 7
+  maximum_effort_score_1_to_10: 5
+  minimum_ai_can_do_percent: 75
+minimum_probability_score: 5
+minimum_ai_can_do_percentage: 60
+minimum_expected_value_usd: 0
+require_specific_claimable_opportunity: true
+require_strong_real_asset_path: true
+require_no_upfront_payment: true
+disallow_loss_paths: true
+disallow_illegal: true
+disallow_terms_violating: true
+disallow_scammy: true
+disallow_job_task_grind: true
+source_discovery:
+  enabled: true
+  query_limit: 85
+  results_per_query: 10
+  max_candidates_per_run: 300
+  search_endpoint: https://duckduckgo.com/html/
+  provider: ManualQueryMode
+allowed_user_actions:
+  - approve
+  - connect
+  - sign
+  - claim
+  - accept
+  - provide_shipping
+  - provide_payout
+statuses:
+  - Found
+  - Qualified
+  - AI Work Started
+  - AI Work Complete
+  - Needs Approval
+  - Approved
+  - Connect Needed
+  - Submitted
+  - Ready to Accept
+  - Accepted
+  - Received/Paid
+  - Dead End
+  - Rejected
+  - Later
+  - Paid Mode Later
+dashboard_status_actions:
+  Approve: Approved
+  Reject: Rejected
+  Later: Later
+  Connect Needed: Connect Needed
+  Claim Submitted: Submitted
+  Ready to Accept: Ready to Accept
+  Accepted: Accepted
+  Received/Paid: Received/Paid
+  Dead End: Dead End

@@ -1,0 +1,14 @@
+gain-entity/.env
+gain-entity/.venv/
+gain-entity/**/__pycache__/
+gain-entity/**/*.py[cod]
+gain-entity/.pytest_cache/
+gain-entity/.mypy_cache/
+gain-entity/.ruff_cache/
+gain-entity/data/**
+!gain-entity/data/
+!gain-entity/data/exports/
+!gain-entity/data/exports/.gitkeep
+gain-entity/streamlit-*.log
+gain-entity/http.out
+gain-entity/http.err

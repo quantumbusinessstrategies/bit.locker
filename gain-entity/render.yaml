@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: quantumgains-web
+    env: docker
+    plan: starter
+    autoDeploy: false
+    disk:
+      name: quantumgains-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_PATH
+        value: /app/data/gain_entity.sqlite3
+      - key: PYTHONPATH
+        value: /app/src
+      - key: QUANTUMGAINS_USERS_JSON
+        sync: false
+      - key: QUANTUMGAINS_ACCESS_PIN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini

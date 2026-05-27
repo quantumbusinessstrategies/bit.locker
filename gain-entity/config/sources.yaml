@@ -1,0 +1,444 @@
+rss_feeds:
+  - name: Grants.gov New Opportunities by Agency
+    enabled: true
+    url: https://www.grants.gov/rss/GG_NewOppByAgency.xml
+    tags: [official, grants, government, funding]
+  - name: Grants.gov New Opportunities by Category
+    enabled: true
+    url: https://www.grants.gov/rss/GG_NewOppByCategory.xml
+    tags: [official, grants, government, funding]
+  - name: NIH Funding Opportunities
+    enabled: true
+    url: https://grants.nih.gov/grants/guide/newsfeed/fundingopps.xml
+    tags: [official, grants, research, funding]
+
+configured_urls:
+  - name: NAUPA Unclaimed Property
+    enabled: true
+    url: https://unclaimed.org/
+    extract_links: true
+    only_same_domain: false
+    tags: [official-directory, unclaimed-property, claim]
+  - name: MissingMoney Search
+    enabled: true
+    url: https://www.missingmoney.com/
+    extract_links: true
+    only_same_domain: false
+    tags: [unclaimed-property, search, claim]
+  - name: USA.gov Benefits
+    enabled: true
+    url: https://www.usa.gov/benefits
+    extract_links: true
+    only_same_domain: true
+    tags: [official, benefits, credits]
+  - name: Federal Innovation and Prize Opportunities
+    enabled: true
+    url: https://www.usa.gov/innovation
+    extract_links: true
+    only_same_domain: true
+    tags: [official, prizes, challenges]
+  - name: SAM.gov Assistance Listings
+    enabled: true
+    url: https://sam.gov/content/assistance-listings
+    extract_links: true
+    only_same_domain: true
+    tags: [official, assistance, grants]
+  - name: FTC Refund Programs
+    enabled: true
+    url: https://www.ftc.gov/enforcement/refunds
+    extract_links: true
+    only_same_domain: true
+    tags: [official, refunds, cash, claims]
+  - name: CFPB Payments to Harmed Consumers
+    enabled: true
+    url: https://www.consumerfinance.gov/enforcement/payments-harmed-consumers/payments-by-case/
+    extract_links: true
+    only_same_domain: true
+    tags: [official, refunds, cash, harmed-consumers]
+  - name: SEC Distributions to Harmed Investors
+    enabled: true
+    url: https://www.sec.gov/enforcement-litigation/distributions-harmed-investors
+    extract_links: true
+    only_same_domain: true
+    tags: [official, investor-recovery, cash, claims]
+  - name: Benefits.gov Benefit Finder
+    enabled: true
+    url: https://www.benefits.gov/benefit-finder
+    extract_links: true
+    only_same_domain: true
+    tags: [official, benefits, assistance, credits]
+  - name: Energy Star Rebate Finder
+    enabled: true
+    url: https://www.energystar.gov/rebate-finder
+    extract_links: true
+    only_same_domain: true
+    tags: [rebates, credits, energy]
+  - name: ClassAction.org Settlements
+    enabled: true
+    url: https://www.classaction.org/settlements
+    extract_links: true
+    only_same_domain: true
+    tags: [settlements, cash, claims]
+  - name: OpenClassActions Settlements
+    enabled: true
+    url: https://www.openclassactions.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [settlements, cash, claims, no-proof]
+  - name: Top Class Actions Open Settlements
+    enabled: true
+    url: https://topclassactions.com/lawsuit-settlements/open-lawsuit-settlements/
+    extract_links: true
+    only_same_domain: true
+    tags: [settlements, cash, claims]
+  - name: SettlementRadar Open Settlements
+    enabled: true
+    url: https://www.settlementradar.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [settlements, cash, claims, no-proof]
+  - name: Challenge.gov Prize Competitions
+    enabled: true
+    url: https://www.challenge.gov/
+    extract_links: true
+    only_same_domain: true
+    tags: [official, prizes, challenges, awards]
+  - name: Product Testing USA
+    enabled: true
+    url: https://producttestingusa.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [product-testing, free-physical-goods, samples]
+  - name: Home Tester Club
+    enabled: true
+    url: https://www.hometesterclub.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [product-testing, free-physical-goods, samples]
+  - name: BzzAgent
+    enabled: true
+    url: https://www.bzzagent.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [product-testing, free-physical-goods, samples]
+  - name: Tryable Product Testing
+    enabled: true
+    url: https://www.tryable.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [product-testing, free-physical-goods, samples]
+  - name: Influenster Product Campaigns
+    enabled: true
+    url: https://www.influenster.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [product-testing, free-physical-goods, reviews]
+  - name: Sampler Product Samples
+    enabled: true
+    url: https://www.sampler.io/
+    extract_links: true
+    only_same_domain: true
+    tags: [product-testing, free-physical-goods, samples]
+  - name: UserTesting
+    enabled: true
+    url: https://www.usertesting.com/tester
+    extract_links: true
+    only_same_domain: true
+    tags: [user-testing, cash, research]
+  - name: Trymata Paid Testing
+    enabled: true
+    url: https://trymata.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [user-testing, cash, research]
+  - name: Dscout Research Studies
+    enabled: true
+    url: https://dscout.com/participate-in-research-studies
+    extract_links: true
+    only_same_domain: true
+    tags: [paid-research, cash, surveys]
+  - name: User Interviews Participants
+    enabled: true
+    url: https://www.userinterviews.com/participants
+    extract_links: true
+    only_same_domain: true
+    tags: [paid-research, cash, interviews]
+  - name: Respondent
+    enabled: true
+    url: https://www.respondent.io/respondents
+    extract_links: true
+    only_same_domain: true
+    tags: [paid-research, cash, surveys]
+  - name: Prolific Participants
+    enabled: true
+    url: https://www.prolific.com/participants
+    extract_links: true
+    only_same_domain: true
+    tags: [paid-research, cash, surveys]
+  - name: BetaTesting
+    enabled: true
+    url: https://betatesting.com/tester
+    extract_links: true
+    only_same_domain: true
+    tags: [beta-tests, user-testing, rewards]
+  - name: Devpost Hackathons
+    enabled: true
+    url: https://devpost.com/hackathons
+    extract_links: true
+    only_same_domain: true
+    tags: [prizes, hackathons, developer, awards]
+  - name: Kaggle Competitions
+    enabled: true
+    url: https://www.kaggle.com/competitions
+    extract_links: true
+    only_same_domain: true
+    tags: [prizes, data, developer, competitions]
+  - name: OnlyDust Open Source Rewards
+    enabled: true
+    url: https://app.onlydust.com/
+    extract_links: true
+    only_same_domain: true
+    tags: [bounties, developer, open-source, payouts]
+  - name: Superteam Earn
+    enabled: true
+    url: https://earn.superteam.fun/
+    extract_links: true
+    only_same_domain: true
+    tags: [bounties, crypto-rewards, developer, final-approval]
+
+manual_seed_links:
+  - name: Grants.gov Search Grants
+    enabled: true
+    url: https://www.grants.gov/search-grants
+    tags: [official, grants, funding]
+  - name: USA.gov Unclaimed Money
+    enabled: true
+    url: https://www.usa.gov/unclaimed-money
+    tags: [official, unclaimed-property, claim]
+  - name: TreasuryDirect Savings Bonds
+    enabled: true
+    url: https://www.treasurydirect.gov/savings-bonds/
+    tags: [official, savings-bonds, asset-claim]
+  - name: Treasury Hunt
+    enabled: true
+    url: https://www.treasurydirect.gov/TH/
+    tags: [official, savings-bonds, unclaimed, claim]
+  - name: PBGC Unclaimed Retirement Benefits
+    enabled: true
+    url: https://www.pbgc.gov/wr/trusteed-plans/unclaimed-benefits
+    tags: [official, retirement, unclaimed, cash]
+  - name: IRS Credits and Deductions
+    enabled: true
+    url: https://www.irs.gov/credits-deductions
+    tags: [official, tax-credits, rebates]
+  - name: GitHub Student Developer Pack
+    enabled: true
+    url: https://education.github.com/pack
+    tags: [developer-credits, software-licenses, cloud-credits]
+  - name: AWS Activate Credits
+    enabled: true
+    url: https://aws.amazon.com/activate/
+    tags: [cloud-credits, startup, developer-credits]
+  - name: Microsoft for Startups
+    enabled: true
+    url: https://www.microsoft.com/startups
+    tags: [cloud-credits, startup, developer-credits]
+  - name: Google Cloud Startup Program
+    enabled: true
+    url: https://cloud.google.com/startup
+    tags: [cloud-credits, startup, developer-credits]
+  - name: Oracle for Startups
+    enabled: true
+    url: https://www.oracle.com/startup/
+    tags: [cloud-credits, startup, developer-credits]
+  - name: NVIDIA Inception
+    enabled: true
+    url: https://www.nvidia.com/en-us/startups/
+    tags: [startup, developer-credits, ai-credits]
+  - name: DigitalOcean Hatch
+    enabled: true
+    url: https://www.digitalocean.com/hatch
+    tags: [cloud-credits, startup, developer-credits]
+  - name: Cloudflare for Startups
+    enabled: true
+    url: https://www.cloudflare.com/for-startups/
+    tags: [startup, developer-credits, cloud-credits]
+  - name: Airtable for Startups
+    enabled: true
+    url: https://www.airtable.com/startups
+    tags: [startup, software-credits]
+  - name: Notion for Startups
+    enabled: true
+    url: https://www.notion.com/startups
+    tags: [startup, software-credits]
+  - name: MongoDB for Startups
+    enabled: true
+    url: https://www.mongodb.com/startups
+    tags: [startup, software-credits, database-credits]
+  - name: HubSpot for Startups
+    enabled: true
+    url: https://www.hubspot.com/startups
+    tags: [startup, software-credits, crm-credits]
+  - name: Segment for Startups
+    enabled: true
+    url: https://segment.com/startups/
+    tags: [startup, software-credits, analytics-credits]
+  - name: Intercom for Startups
+    enabled: true
+    url: https://www.intercom.com/startups
+    tags: [startup, software-credits, support-credits]
+  - name: F6S Startup Deals
+    enabled: true
+    url: https://www.f6s.com/deals
+    tags: [startup, software-credits, grant-directory]
+  - name: Secret Startup Deals
+    enabled: true
+    url: https://www.joinsecret.com/
+    tags: [startup, software-credits, deals]
+  - name: GitHub Sponsors
+    enabled: true
+    url: https://github.com/sponsors
+    tags: [creator-incentives, developer, payouts]
+  - name: TikTok Creator Portal
+    enabled: true
+    url: https://www.tiktok.com/creators/creator-portal/
+    tags: [creator-incentives, payouts]
+  - name: YouTube Creators
+    enabled: true
+    url: https://www.youtube.com/creators/
+    tags: [creator-incentives, payouts]
+  - name: Coinbase Learning Rewards
+    enabled: true
+    url: https://www.coinbase.com/learning-rewards
+    tags: [crypto-rewards, education, low-risk]
+  - name: CoinMarketCap Learn and Earn
+    enabled: true
+    url: https://coinmarketcap.com/earn/
+    tags: [crypto-rewards, education, final-approval]
+  - name: Galxe Quest Discovery
+    enabled: true
+    url: https://galxe.com/
+    tags: [crypto-rewards, airdrops, quests, wallet-signing-final-approval]
+  - name: Layer3 Quests
+    enabled: true
+    url: https://layer3.xyz/
+    tags: [crypto-rewards, quests, public-wallet, wallet-signing-final-approval]
+  - name: QuestN Campaigns
+    enabled: true
+    url: https://questn.com/
+    tags: [crypto-rewards, quests, public-wallet, wallet-signing-final-approval]
+  - name: Intract Quests
+    enabled: true
+    url: https://www.intract.io/
+    tags: [crypto-rewards, quests, public-wallet, wallet-signing-final-approval]
+  - name: RabbitHole Quests
+    enabled: true
+    url: https://rabbithole.gg/
+    tags: [crypto-rewards, quests, public-wallet, wallet-signing-final-approval]
+  - name: Guild Explorer
+    enabled: true
+    url: https://guild.xyz/explorer
+    tags: [crypto-rewards, quests, community, wallet-signing-final-approval]
+  - name: Zealy Quest Boards
+    enabled: true
+    url: https://zealy.io/
+    tags: [quests, creator-programs, rewards, social-connectors]
+  - name: Gitcoin
+    enabled: true
+    url: https://www.gitcoin.co/
+    tags: [web3-grants, bounties, developer, final-approval]
+  - name: Dework Bounties
+    enabled: true
+    url: https://app.dework.xyz/
+    tags: [bounties, developer, crypto-rewards, final-approval]
+  - name: Devpost Prize Hackathons
+    enabled: true
+    url: https://devpost.com/hackathons
+    tags: [prizes, hackathons, developer, awards]
+  - name: Kaggle Prize Competitions
+    enabled: true
+    url: https://www.kaggle.com/competitions
+    tags: [prizes, competitions, data, developer]
+  - name: OnlyDust Rewards
+    enabled: true
+    url: https://app.onlydust.com/
+    tags: [bounties, developer, open-source, payouts]
+  - name: Superteam Earn Bounties
+    enabled: true
+    url: https://earn.superteam.fun/
+    tags: [bounties, crypto-rewards, developer, final-approval]
+  - name: LayerZero Foundation
+    enabled: true
+    url: https://layerzero.foundation/
+    tags: [airdrop-watch, crypto-rewards, wallet-signing-final-approval]
+  - name: Optimism Governance and Missions
+    enabled: true
+    url: https://community.optimism.io/
+    tags: [quests, grants, crypto-rewards, final-approval]
+  - name: Arbitrum Foundation
+    enabled: true
+    url: https://arbitrum.foundation/
+    tags: [grants, quests, crypto-rewards, final-approval]
+  - name: Magic Eden Rewards
+    enabled: true
+    url: https://magiceden.io/rewards
+    tags: [nft-rewards, watch-only, wallet-signing-final-approval]
+  - name: Pump.fun Watch Only
+    enabled: true
+    url: https://pump.fun/
+    tags: [crypto-watch, simulation-only, no-auto-trading, wallet-signing-final-approval]
+
+link_keywords:
+  - grant
+  - funding
+  - prize
+  - award
+  - rebate
+  - refund
+  - claim
+  - unclaimed
+  - benefit
+  - credit
+  - free
+  - sample
+  - coupon
+  - reward
+  - payout
+  - challenge
+  - bond
+  - assistance
+  - airdrop
+  - quest
+  - bounty
+  - learn
+  - nft
+  - token
+  - wallet
+  - damaged consumer
+  - harmed consumer
+  - distribution
+  - fund administrator
+  - no proof
+  - tester
+  - panel
+  - interview
+  - focus group
+  - hackathon
+  - competition
+  - startup
+  - deal
+  - credits
+  - learn and earn
+  - campaign
+  - mission
+  - points
+
+future_web_search:
+  enabled: false
+  provider: placeholder
+  notes: Add a web search API connector later. It should emit the same candidate shape as RSS and URL sources.
+
+future_inbox_import:
+  enabled: false
+  provider: placeholder
+  notes: Add approved inbox/import connectors later. Never ingest private mail without explicit owner connection.
