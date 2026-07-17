@@ -25,12 +25,14 @@ reject_high_risk: true
 reject_upfront_payment: true
 reject_job_like_work: true
 reject_net_loss_possible: true
+long_shot_free_entry_bypass_enabled: true
+long_shot_free_entry_max_effort: 2
 max_openai_calls_per_run: 160
 max_candidates_per_run: 320
 max_sources_per_run: 55
 max_opportunities_per_run: 320
 approved_source_fetch_limit: 55
-search_provider: ManualQueryMode
+search_provider: Brave
 wide_net:
   minimum_probability_score_1_to_10: 5
   maximum_effort_score_1_to_10: 6
@@ -56,7 +58,7 @@ source_discovery:
   results_per_query: 10
   max_candidates_per_run: 300
   search_endpoint: https://duckduckgo.com/html/
-  provider: ManualQueryMode
+  provider: Brave
 allowed_user_actions:
   - approve
   - connect
