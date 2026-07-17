@@ -49,6 +49,8 @@ class StrictFilter:
         if self.rules.get("disallow_job_task_grind", True) and _bool(score.get("job_task_grind")):
             reasons.append("job/task-grind drift")
 
+        effort = _number(score.get("effort_score_1_to_10"))
+
         probability = _number(score.get("probability_score_1_to_10", score.get("probability_score")))
         minimum_probability = _number(
             self.thresholds.get(
@@ -56,10 +58,20 @@ class StrictFilter:
                 self.rules.get("minimum_probability_score", 5),
             )
         )
-        if probability < minimum_probability:
+        # A true long-shot (e.g. a legit sweepstakes/prize drawing) can fairly score low
+        # probability while still being worth entering, because entry itself costs nothing.
+        # Only bypass the probability floor when effort is trivial AND every other safety
+        # gate above (risk, upfront payment, loss, illegal, terms, scammy) already passed.
+        long_shot_bypass_enabled = self.rules.get("long_shot_free_entry_bypass_enabled", True)
+        long_shot_max_effort = _number(self.rules.get("long_shot_free_entry_max_effort", 2))
+        is_long_shot_free_entry = (
+            long_shot_bypass_enabled
+            and not reasons
+            and effort <= long_shot_max_effort
+        )
+        if probability < minimum_probability and not is_long_shot_free_entry:
             reasons.append(f"probability below {minimum_probability:g}")
 
-        effort = _number(score.get("effort_score_1_to_10"))
         maximum_effort = _number(self.thresholds.get("maximum_effort_score_1_to_10", 6))
         if effort > maximum_effort:
             reasons.append(f"effort above {maximum_effort:g}")
