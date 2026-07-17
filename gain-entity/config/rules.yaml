@@ -1,6 +1,6 @@
 mode: Wide Free Net
 autonomy_enabled: true
-schedule_frequency: 6h
+schedule_frequency: daily
 source_discovery_enabled: true
 discovery_graph_enabled: true
 max_discovery_depth: 3
@@ -54,7 +54,7 @@ disallow_scammy: true
 disallow_job_task_grind: true
 source_discovery:
   enabled: true
-  query_limit: 85
+  query_limit: 25
   results_per_query: 10
   max_candidates_per_run: 300
   search_endpoint: https://duckduckgo.com/html/
