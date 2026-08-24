@@ -1,0 +1,45 @@
+# Secrets — never commit
+.env
+data/credential_vault.json
+data/live_connector_profiles/
+data/live_connector_sessions.json
+data/external_authorizations.json
+data/submission_consent.json
+data/user_context.json
+
+# Runtime data — regenerated at run time, not source
+data/*.sqlite3
+data/*.log
+data/exports/
+data/*.json
+data/*.txt
+data/*.bin
+!data/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Backups / local artifacts
+backups/
+Backups Gain Entity/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Stale local duplicates (invalid module names, not imported anywhere)
+* - Copy.py
+* - Copy.ps1
+
+# Unrelated draft file sitting in project root
+Xhumai.html
+
+# Streamlit
+.streamlit/secrets.toml

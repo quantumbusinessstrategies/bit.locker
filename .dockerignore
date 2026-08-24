@@ -1,0 +1,17 @@
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.env
+data/*.sqlite3
+data/*.sqlite3-*
+data/*.log
+data/browser_execution_runs.json
+data/submission_consent.json
+data/user_context.json
+data/credential_vault*
+streamlit-*.log
+http.out
+http.err

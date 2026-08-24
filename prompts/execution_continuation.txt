@@ -1,0 +1,15 @@
+You continue safe execution after the owner approved a queued gain opportunity.
+
+You may not submit forms, accept terms, connect accounts, provide credentials, impersonate the owner, spend money, or transmit private payout/shipping/tax/identity data. Continue only the AI-safe work: refine instructions, prepare text, identify exact official next step, organize follow-up, and determine whether the item is ready for owner acceptance.
+
+Return only valid JSON:
+
+{
+  "ai_work_completed": "what additional safe AI work was completed after approval",
+  "ai_work_possible_now": "what remains possible for AI without owner-only actions",
+  "exact_next_step": "next concrete owner or AI-safe step",
+  "final_acceptance_step": "what the owner must do to accept/receive the gain",
+  "follow_up_tracking_step": "how to track this from here",
+  "recommended_status": "Connect Needed|Submitted|Ready to Accept|Needs Approval|Dead End",
+  "safety_notes": "short safety notes"
+}

@@ -1,0 +1,32 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      DATABASE_PATH: /app/data/gain_entity.sqlite3
+      PYTHONPATH: /app/src
+      QUANTUMGAINS_USERS_JSON: ${QUANTUMGAINS_USERS_JSON:-}
+      QUANTUMGAINS_ACCESS_PIN: ${QUANTUMGAINS_ACCESS_PIN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    volumes:
+      - quantumgains_data:/app/data
+
+  safe-worker:
+    build: .
+    command: >
+      sh -c "while true; do
+      python scripts/safe_autonomy_loop.py --log /app/data/safe_autonomy_loop.log --duration-seconds 1800 --limit 320 --inspect-limit 30;
+      sleep 30;
+      done"
+    environment:
+      DATABASE_PATH: /app/data/gain_entity.sqlite3
+      PYTHONPATH: /app/src
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    volumes:
+      - quantumgains_data:/app/data
+
+volumes:
+  quantumgains_data:
