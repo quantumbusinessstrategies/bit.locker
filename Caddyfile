@@ -1,0 +1,3 @@
+qubit.locker, www.qubit.locker {
+	reverse_proxy web:8501
+}

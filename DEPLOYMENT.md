@@ -2,6 +2,62 @@
 
 Goal: run the dashboard on a domain while keeping it owner-only.
 
+## Azure VM + Porkbun Quick Start (current plan)
+
+This repo already has everything needed: `Dockerfile`, `docker-compose.yml` (web + background
+worker + Caddy for automatic HTTPS), and `Caddyfile` pointed at `qubit.locker`. You need to do the
+parts that require your own accounts — nobody else can click through your Azure/Porkbun dashboards
+for you. Everything below is copy-paste once you're SSH'd into the VM.
+
+**1. Claim the Azure credit and create a VM (you do this in the browser)**
+- Go to https://education.github.com/pack, find Microsoft Azure, click "Get access."
+- In the Azure portal: Create a resource → Ubuntu Server 24.04 LTS → size `B2s` (2 vCPU/4GB — plenty
+  for this app) → create an SSH key pair when prompted (download the `.pem`/download the key) →
+  open ports 22, 80, 443 in the Networking step → Create.
+- Once it's running, copy the VM's **public IP address** — you'll need it for steps 2 and 4.
+
+**2. Point Porkbun at the VM (you do this in the browser)**
+- Porkbun → qubit.locker → DNS records → add an **A record**: host `@`, answer = the VM's public IP.
+- Add a second A record: host `www`, same IP (Caddyfile already covers `www.qubit.locker` too).
+- DNS can take a few minutes to a few hours to propagate — this can happen while you do step 3.
+
+**3. SSH in and install Docker**
+
+```bash
+ssh -i /path/to/your-key.pem azureuser@<VM_PUBLIC_IP>
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+**4. Pull the repo and set real secrets**
+
+```bash
+git clone https://github.com/quantumbusinessstrategies/bit.locker.git
+cd bit.locker
+cp .env.example .env
+nano .env   # fill in OPENAI_API_KEY, QUANTUMGAINS_ACCESS_PIN_HASH, BRAVE_SEARCH_API_KEY
+```
+
+Never put real secrets in `.env.example` or commit `.env` — it's already gitignored.
+
+**5. Launch it**
+
+```bash
+docker compose up -d --build
+docker compose logs -f caddy   # watch for "certificate obtained successfully"
+```
+
+Once Caddy reports the certificate is issued and DNS has propagated, `https://qubit.locker` serves
+the live dashboard. `docker compose ps` shows all three services (`web`, `safe-worker`, `caddy`)
+running with `restart: unless-stopped`, so a VM reboot brings everything back on its own.
+
+**6. Updating later**
+
+```bash
+cd bit.locker && git pull && docker compose up -d --build
+```
+
 ## Fastest Safe Hosting Shape
 
 1. Push this project to a private GitHub repository.

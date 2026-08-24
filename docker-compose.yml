@@ -1,20 +1,24 @@
 services:
   web:
     build: .
-    ports:
-      - "8501:8501"
+    restart: unless-stopped
+    expose:
+      - "8501"
     environment:
       DATABASE_PATH: /app/data/gain_entity.sqlite3
       PYTHONPATH: /app/src
       QUANTUMGAINS_USERS_JSON: ${QUANTUMGAINS_USERS_JSON:-}
       QUANTUMGAINS_ACCESS_PIN: ${QUANTUMGAINS_ACCESS_PIN:-}
+      QUANTUMGAINS_ACCESS_PIN_HASH: ${QUANTUMGAINS_ACCESS_PIN_HASH:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      BRAVE_SEARCH_API_KEY: ${BRAVE_SEARCH_API_KEY:-}
     volumes:
       - quantumgains_data:/app/data
 
   safe-worker:
     build: .
+    restart: unless-stopped
     command: >
       sh -c "while true; do
       python scripts/safe_autonomy_loop.py --log /app/data/safe_autonomy_loop.log --duration-seconds 1800 --limit 320 --inspect-limit 30;
@@ -25,8 +29,24 @@ services:
       PYTHONPATH: /app/src
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      BRAVE_SEARCH_API_KEY: ${BRAVE_SEARCH_API_KEY:-}
     volumes:
       - quantumgains_data:/app/data
 
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
 volumes:
   quantumgains_data:
+  caddy_data:
+  caddy_config:
