@@ -18,7 +18,7 @@ from config import ensure_runtime_dirs, load_settings, load_yaml_file, read_prom
 from discovery.source_graph import SourceGraph
 from autonomy.spend_guard import apply_paid_mode_to_rules, load_live_autorun_control, spend_cap_check
 from execution.action_engine import ActionEngine
-from sources.custom_queries import apply_custom_queries_to_rules, load_custom_scan_queries
+from sources.custom_queries import apply_custom_queries_to_rules, load_all_custom_scan_queries
 from sources.rss_sources import SourceCandidate, SourceSwarm
 from sources.source_discovery import SourceDiscoveryEngine
 from storage.sqlite_store import SQLiteStore
@@ -46,7 +46,7 @@ def main() -> int:
         rules["qualification_mode"] = args.qualification_mode
     live_control = load_live_autorun_control(settings.root_dir)
     rules = apply_paid_mode_to_rules(rules, live_control)
-    custom_scan_queries = load_custom_scan_queries(settings.root_dir)
+    custom_scan_queries = load_all_custom_scan_queries(settings.root_dir)
     rules = apply_custom_queries_to_rules(rules, custom_scan_queries)
     cost_guard = build_cost_guard(rules)
 

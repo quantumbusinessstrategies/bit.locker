@@ -471,6 +471,7 @@ class SQLiteStore:
                     net_loss_possible=?,
                     fastest_gain_score=?,
                     highest_value_score=?,
+                    application_deadline=?,
                     updated_at=?
                 WHERE id=?
                 """,
@@ -485,6 +486,7 @@ class SQLiteStore:
                     _int_bool(score.get("net_loss_possible", score.get("could_produce_loss"))),
                     score.get("fastest_gain_score"),
                     score.get("highest_value_score"),
+                    score.get("application_deadline") or None,
                     now,
                     opportunity_id,
                 ),
@@ -593,6 +595,10 @@ class SQLiteStore:
                     "UPDATE claim_queue SET upfront_cost_usd=? WHERE id=?",
                     (float(score.get("upfront_cost_usd") or 0), queue_id),
                 )
+                conn.execute(
+                    "UPDATE claim_queue SET application_deadline=? WHERE id=?",
+                    (score.get("application_deadline") or None, queue_id),
+                )
                 return queue_id, created
             except sqlite3.IntegrityError:
                 values = self._queue_values(opportunity_id, status, score, prep, now, now)
@@ -698,6 +704,10 @@ class SQLiteStore:
                 conn.execute(
                     "UPDATE claim_queue SET upfront_cost_usd=? WHERE id=?",
                     (float(score.get("upfront_cost_usd") or 0), queue_id),
+                )
+                conn.execute(
+                    "UPDATE claim_queue SET application_deadline=? WHERE id=?",
+                    (score.get("application_deadline") or None, queue_id),
                 )
                 return queue_id, False
 
@@ -1813,6 +1823,7 @@ class SQLiteStore:
             "discovered_from": "TEXT",
             "discovery_depth": "INTEGER",
             "source_lineage": "TEXT",
+            "application_deadline": "TEXT",
         }
         for name, ddl in columns.items():
             if name not in existing:
@@ -1879,6 +1890,8 @@ class SQLiteStore:
             "sensitive_inputs": "TEXT",
             "input_summary": "TEXT",
             "last_execution_at": "TEXT",
+            "owner_username": "TEXT",
+            "application_deadline": "TEXT",
         }
         for name, ddl in columns.items():
             if name not in existing:

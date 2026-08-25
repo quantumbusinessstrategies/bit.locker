@@ -88,6 +88,31 @@ python scripts/create_access_user.py family
 Merge the generated JSON objects into one `QUANTUMGAINS_USERS_JSON` value. Passwords are not stored in plaintext. The older
 `QUANTUMGAINS_ACCESS_PIN` gate still works as a local fallback, but username/password hashes are the better online setup.
 
+## Multiple People, Short Personal Codes (testers/family)
+
+For a few trusted people who just need a short code (not a full username+password), set
+`QUANTUMGAINS_ACCESS_PINS_JSON` instead. Each person gets their own code, their own identity, and
+their own isolated vault/settings/notes/reminders/scan queries - nobody sees or overwrites anyone
+else's personal info. Generate it with:
+
+```bash
+python scripts/create_access_pins.py --person owner:3846:owner --person tester1:0420 --person tester2:6969 --person tester3:6666
+```
+
+The first `:role` segment matters for exactly one person: only `role: owner` can change paid-mode /
+spend-cap settings, so make sure exactly one entry uses `owner` and the rest are left as `member`.
+
+Discovered opportunities and the claim queue are still shared across everyone (one scan feeds
+everyone, so the app doesn't burn 4x the API budget) - but personal data isn't. Whoever clicks
+"Approve" on an item claims it: that item's forms get filled using *their* vault, not anyone else's.
+
+**Important safety boundary:** the always-on background loop (`safe_autonomy_loop.py`, e.g. on Fly)
+only ever auto-submits claims for the primary `owner` identity. Once a teammate approves an item, it's
+stamped as theirs and the unattended loop leaves it alone - it will only advance/submit once that
+person manually approves it themselves, in-app, while they're actually present. This is deliberate:
+nobody's personal/payment info gets used by an automated process without them personally clicking
+through it first.
+
 ## Background Autonomy Worker
 
 Run this as a separate worker/cron job when the host supports background processes:

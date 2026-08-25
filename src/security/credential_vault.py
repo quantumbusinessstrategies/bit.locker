@@ -42,8 +42,9 @@ class CredentialVault:
         self.path = path
 
     @classmethod
-    def for_root(cls, root_dir: Path) -> "CredentialVault":
-        return cls(root_dir / "data" / "credential_vault.json")
+    def for_root(cls, root_dir: Path, username: str = "owner") -> "CredentialVault":
+        suffix = "" if username == "owner" else f"_{username}"
+        return cls(root_dir / "data" / f"credential_vault{suffix}.json")
 
     def exists(self) -> bool:
         return self.path.exists()

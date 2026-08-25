@@ -61,6 +61,7 @@ def run_completion_engine_pass(
     Destination Router, and Final Approval detector back onto the existing queue.
     """
 
+    expired_count = _expire_overdue_rows(conn, commit=commit)
     rows = _active_rows(conn, limit)
     engine = ActionEngine(user_context)
     router = DestinationRouter()
@@ -126,7 +127,43 @@ def run_completion_engine_pass(
         notes.append("Dry run only; no queue rows were changed.")
     else:
         notes.append("Safe derived queue state was synchronized from existing utility layers.")
+    if expired_count:
+        verb = "Marked" if commit else "Would mark"
+        notes.append(f"{verb} {expired_count} item(s) Expired (deadline already passed) and dropped from your queue.")
     return CompletionEngineSummary(scanned=len(rows), notes=notes, **stats)
+
+
+def _expire_overdue_rows(conn: Any, *, commit: bool) -> int:
+    """Sweep claim_queue for items whose extracted deadline has already passed.
+
+    Keeps the queue clean without wasting further AI/browser work on something that
+    can no longer be claimed. Only acts on rows with a real extracted deadline -
+    unknown-deadline items are left alone rather than guessed at. Dry Run passes only
+    count what would be expired; they never write, matching this function's contract.
+    """
+    today = datetime.now(timezone.utc).date().isoformat()
+    rows = conn.execute(
+        """
+        SELECT id, opportunity_id FROM claim_queue
+        WHERE application_deadline IS NOT NULL
+          AND application_deadline != ''
+          AND application_deadline < ?
+          AND status NOT IN ('Reject', 'Rejected', 'Dead End', 'Paid Mode Later', 'Received/Paid', 'Expired')
+        """,
+        (today,),
+    ).fetchall()
+    if commit:
+        now = _utc_now()
+        for row in rows:
+            conn.execute(
+                "UPDATE claim_queue SET status='Expired', updated_at=? WHERE id=?",
+                (now, row["id"]),
+            )
+            conn.execute(
+                "UPDATE opportunities SET status='Expired', updated_at=? WHERE id=?",
+                (now, row["opportunity_id"]),
+            )
+    return len(rows)
 
 
 def _active_rows(conn: Any, limit: int) -> list[dict[str, Any]]:
@@ -135,7 +172,7 @@ def _active_rows(conn: Any, limit: int) -> list[dict[str, Any]]:
         SELECT cq.*, o.title, o.url, o.root_domain, o.source_name
         FROM claim_queue cq
         JOIN opportunities o ON o.id = cq.opportunity_id
-        WHERE cq.status NOT IN ('Reject', 'Rejected', 'Dead End', 'Paid Mode Later', 'Received/Paid')
+        WHERE cq.status NOT IN ('Reject', 'Rejected', 'Dead End', 'Paid Mode Later', 'Received/Paid', 'Expired')
         ORDER BY cq.fastest_gain_score DESC, cq.highest_value_score DESC, cq.updated_at DESC
         LIMIT ?
         """,

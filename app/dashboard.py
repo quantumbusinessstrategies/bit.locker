@@ -180,18 +180,35 @@ AI_LABOR_RISK_CONSENT_PATH = ROOT_DIR / "data" / "ai_labor_risk_consent.json"
 ENTITY_TREASURY_PATH = ROOT_DIR / "data" / "entity_treasury.json"
 CHAOS_MODE_PATH = ROOT_DIR / "data" / "chaos_mode.json"
 CHAOS_WORKER_STATUS_PATH = ROOT_DIR / "data" / "chaos_worker_status.json"
-DESKTOP_PREFS_PATH = ROOT_DIR / "data" / "desktop_preferences.json"
-DESKTOP_NOTES_PATH = ROOT_DIR / "data" / "desktop_notes.txt"
-DESKTOP_WALLPAPER_IMAGE_PATH = ROOT_DIR / "data" / "desktop_wallpaper_custom.bin"
 RULES_PATH = ROOT_DIR / "config" / "rules.yaml"
-USER_CONTEXT_STORE = UserContextStore.for_root(ROOT_DIR)
+
+
+def _user_file_suffix() -> str:
+    username = _current_owner_username()
+    return "" if username == "owner" else f"_{username}"
+
+
+def _desktop_prefs_path() -> Path:
+    return ROOT_DIR / "data" / f"desktop_preferences{_user_file_suffix()}.json"
+
+
+def _desktop_notes_path() -> Path:
+    return ROOT_DIR / "data" / f"desktop_notes{_user_file_suffix()}.txt"
+
+
+def _desktop_wallpaper_image_path() -> Path:
+    return ROOT_DIR / "data" / f"desktop_wallpaper_custom{_user_file_suffix()}.bin"
+
+
+def _user_context_store() -> UserContextStore:
+    return UserContextStore.for_root(ROOT_DIR, username=_current_owner_username())
 
 AUTORUN_MODES = ["Conservative", "Balanced", "Aggressive", "Open-To-Everything"]
 AUTORUN_EXECUTION_MODES = ["Dry Run", "Live Assist", "Live Submit With Final Approval"]
 DEFAULT_AUTORUN_CONTROL = {
-    "enabled": False,
+    "enabled": True,
     "mode": "Balanced",
-    "execution_mode": "Dry Run",
+    "execution_mode": "Live Submit With Final Approval",
     "paid_mode_enabled": False,
     "max_spend_usd": 0.0,
 }
@@ -303,7 +320,7 @@ def _is_live_ops_route() -> bool:
 
 
 def _cancel_reminders_path() -> Path:
-    return ROOT_DIR / "data" / "cancel_reminders.json"
+    return ROOT_DIR / "data" / f"cancel_reminders{_user_file_suffix()}.json"
 
 
 def load_cancel_reminders() -> dict[str, dict[str, str]]:
@@ -324,7 +341,7 @@ def save_cancel_reminders(reminders: dict[str, dict[str, str]]) -> None:
 
 def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
     wallpaper_choice = str(prefs.get("wallpaper"))
-    if wallpaper_choice == "Custom Image" and DESKTOP_WALLPAPER_IMAGE_PATH.exists():
+    if wallpaper_choice == "Custom Image" and _desktop_wallpaper_image_path().exists():
         mime = str(prefs.get("custom_wallpaper_mime") or "image/png")
         wallpaper = f"url('{_desktop_wallpaper_data_uri(mime)}') center/cover no-repeat fixed"
     else:
@@ -435,6 +452,47 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
             font-size: 16px; padding: 10px; height: 260px; overflow-y: auto; white-space: pre-wrap;
             border: 2px solid #000; box-shadow: inset 1px 1px 0 #333;
         }}
+        div[class*="st-key-win95_window_body"] {{
+            background: #ece9d8 !important; border: 2px solid #fff !important;
+            border-right-color: #6b6b6b !important; border-bottom-color: #6b6b6b !important;
+            box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf !important;
+            padding: 16px !important; color: #000 !important;
+        }}
+        div[class*="st-key-win95_window_body"] p,
+        div[class*="st-key-win95_window_body"] span,
+        div[class*="st-key-win95_window_body"] label,
+        div[class*="st-key-win95_window_body"] li,
+        div[class*="st-key-win95_window_body"] .stMarkdown,
+        div[class*="st-key-win95_window_body"] [data-testid="stMarkdownContainer"] p,
+        div[class*="st-key-win95_window_body"] [data-testid="stMarkdownContainer"] li,
+        div[class*="st-key-win95_window_body"] .stCaption,
+        div[class*="st-key-win95_window_body"] [data-testid="stCaptionContainer"],
+        div[class*="st-key-win95_window_body"] [data-testid="stCaptionContainer"] p {{
+            color: #000 !important;
+            font-weight: 700 !important;
+            font-size: {17 * icon_scale:.0f}px !important;
+            line-height: 1.45 !important;
+        }}
+        div[class*="st-key-win95_window_body"] h1,
+        div[class*="st-key-win95_window_body"] h2,
+        div[class*="st-key-win95_window_body"] h3,
+        div[class*="st-key-win95_window_body"] h4 {{
+            color: #000 !important; font-weight: 900 !important;
+        }}
+        div[class*="st-key-win95_window_body"] [data-testid="stMetricLabel"] p {{
+            color: #000 !important; font-weight: 800 !important;
+            font-size: {14 * icon_scale:.0f}px !important; opacity: 1 !important;
+        }}
+        div[class*="st-key-win95_window_body"] [data-testid="stMetricValue"] {{
+            color: #000 !important; font-weight: 900 !important;
+        }}
+        .win95-callout {{
+            font-family: {font_stack}; font-size: {17 * icon_scale:.0f}px; font-weight: 800; padding: 10px 12px;
+            margin-bottom: 8px; border: 2px solid #fff; border-right-color: #6b6b6b; border-bottom-color: #6b6b6b;
+            box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+        }}
+        .win95-callout-alert {{ background: #fff4c2; color: #000; }}
+        .win95-callout-clear {{ background: #d9f2d9; color: #000; }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -516,7 +574,7 @@ def show_live_ops_route() -> None:
                 f'<span class="win95-titlebar-controls"><span>_</span><span>▢</span></span></div>',
                 unsafe_allow_html=True,
             )
-        window_body = st.container(border=(open_app != "desktop"))
+        window_body = st.container(border=(open_app != "desktop"), key="win95_window_body")
 
     with window_body, connect() as conn:
         last_auto_ts = st.session_state.get("liveops_last_auto_pass")
@@ -542,14 +600,59 @@ def show_live_ops_route() -> None:
                 SELECT
                     (SELECT COUNT(*) FROM claim_queue WHERE status IN ('Needs Approval','Connect Needed','Ready to Accept')) AS needs_you,
                     (SELECT COUNT(*) FROM claim_queue WHERE status='Received/Paid') AS received,
-                    (SELECT COALESCE(SUM(expected_value_usd),0) FROM claim_queue) AS pipeline_value
+                    (SELECT COALESCE(SUM(expected_value_usd),0) FROM claim_queue) AS pipeline_value,
+                    (SELECT COALESCE(SUM(expected_value_usd),0) FROM claim_queue
+                        WHERE status IN ('Needs Approval','Connect Needed','Ready to Accept')) AS ready_value
                 """
             ).fetchone()
             quick = dict(quick_counts) if quick_counts else {}
+            needs_you_count = int(quick.get("needs_you") or 0)
+            ready_value = float(quick.get("ready_value") or 0)
+
+            if needs_you_count:
+                top_ready = conn.execute(
+                    """
+                    SELECT o.title, cq.expected_value_usd
+                    FROM claim_queue cq
+                    JOIN opportunities o ON o.id = cq.opportunity_id
+                    WHERE cq.status IN ('Needs Approval','Connect Needed','Ready to Accept')
+                    ORDER BY cq.expected_value_usd DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+                top = dict(top_ready) if top_ready else {}
+                top_title = html.escape(str(top.get("title") or "")[:70])
+                st.markdown(
+                    f'<div class="win95-callout win95-callout-alert">'
+                    f'🔔 <b>${ready_value:,.0f} across {needs_you_count} item'
+                    f'{"s" if needs_you_count != 1 else ""} waiting on you</b><br>'
+                    f'Biggest one: <b>${float(top.get("expected_value_usd") or 0):,.0f}</b> — {top_title}'
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+                if st.button("🎯 Open Gain Finder — clear these now", type="primary", use_container_width=True):
+                    st.session_state["liveops_open_app"] = "gain_finder"
+                    st.rerun()
+            else:
+                st.markdown(
+                    '<div class="win95-callout win95-callout-clear">'
+                    "✅ Nothing needs you right now — automation is out scanning in the background."
+                    "</div>",
+                    unsafe_allow_html=True,
+                )
+
             stat_cols = st.columns(3)
-            stat_cols[0].metric("Needs your approval", int(quick.get("needs_you") or 0))
+            stat_cols[0].metric("Needs your approval", needs_you_count)
             stat_cols[1].metric("Received / Paid", int(quick.get("received") or 0))
             stat_cols[2].metric("Pipeline value", f"${float(quick.get('pipeline_value') or 0):,.0f}")
+
+            st.caption(
+                "🤖 On the live server this runs 24/7 on its own schedule in Live Assist mode: it discovers, "
+                "AI-scores, fills out, and safely auto-submits low-risk official forms without waiting for you. "
+                "It only ever stops and waits on: platform login/captcha, legal terms, tax/identity (KYC), "
+                "payment, or wallet signing — everything else keeps moving on its own. The Autorun toggle in "
+                "🔁 Automation only controls extra passes triggered while you have this dashboard open."
+            )
 
         elif open_app == "mode":
             st.markdown("### 🆓 / 💳 Free vs Paid Mode")
@@ -576,20 +679,30 @@ def show_live_ops_route() -> None:
                     f"${committed_spend:,.2f}",
                     delta=f"${max(0.0, max_spend - committed_spend):,.2f} remaining of ${max_spend:,.2f} cap",
                 )
-            new_paid_mode = st.toggle("Allow opportunities that cost money", value=paid_mode_on, key="liveops_paid_toggle")
-            new_max_spend = st.number_input(
-                "Max total willing to spend ($) - 0 means free-only, no exceptions",
-                min_value=0.0,
-                value=max_spend,
-                step=5.0,
-                key="liveops_max_spend_input",
-            )
-            if st.button("Save Mode Settings", type="primary"):
-                control["paid_mode_enabled"] = bool(new_paid_mode)
-                control["max_spend_usd"] = float(new_max_spend)
-                save_autorun_control(control)
-                st.success("Saved.")
-                st.rerun()
+            if _current_owner_role() != "owner":
+                st.info(
+                    "Only the primary owner can change spend settings - this protects the shared "
+                    "dollar cap from being loosened by anyone else with a login."
+                )
+                st.toggle("Allow opportunities that cost money", value=paid_mode_on, disabled=True)
+                st.number_input(
+                    "Max total willing to spend ($)", value=max_spend, disabled=True,
+                )
+            else:
+                new_paid_mode = st.toggle("Allow opportunities that cost money", value=paid_mode_on, key="liveops_paid_toggle")
+                new_max_spend = st.number_input(
+                    "Max total willing to spend ($) - 0 means free-only, no exceptions",
+                    min_value=0.0,
+                    value=max_spend,
+                    step=5.0,
+                    key="liveops_max_spend_input",
+                )
+                if st.button("Save Mode Settings", type="primary"):
+                    control["paid_mode_enabled"] = bool(new_paid_mode)
+                    control["max_spend_usd"] = float(new_max_spend)
+                    save_autorun_control(control)
+                    st.success("Saved.")
+                    st.rerun()
 
         elif open_app == "vault":
             st.markdown("### 🔐 Vault & Profile")
@@ -597,8 +710,33 @@ def show_live_ops_route() -> None:
 
         elif open_app == "automation":
             st.markdown("### 🔁 Background Autopilot")
+            st.caption(
+                "🤖 The live server runs its own always-on safe-autonomy loop, 24/7, completely "
+                "independent of the settings below — it discovers new gains, scores them, fills out "
+                "official forms, and submits the low-risk ones on its own. The controls here are for "
+                "THIS dashboard's own actions (Approve buttons, the button below, page-load passes)."
+            )
+            current_exec_mode = str(control.get("execution_mode") or "Dry Run")
+            new_exec_mode = st.selectbox(
+                "Execution mode for actions taken here in the dashboard",
+                AUTORUN_EXECUTION_MODES,
+                index=AUTORUN_EXECUTION_MODES.index(current_exec_mode) if current_exec_mode in AUTORUN_EXECUTION_MODES else 0,
+                key="liveops_automation_exec_mode",
+                help=_autorun_execution_mode_text(current_exec_mode),
+            )
+            st.caption(_autorun_execution_mode_text(new_exec_mode))
+            if new_exec_mode != current_exec_mode:
+                control["execution_mode"] = new_exec_mode
+                save_autorun_control(control)
+                st.rerun()
+            if current_exec_mode == "Dry Run":
+                st.warning(
+                    "You're in Dry Run — clicking Approve here will simulate the push-forward work but "
+                    "won't actually save it. Switch the dropdown above to stop simulating and start "
+                    "really advancing things when you approve them."
+                )
             show_autorun_header_toggle()
-            st.caption("When ON, this runs discovery + automation on its own schedule, even when you're not looking.")
+            st.caption("When ON, this also runs discovery + automation on its own schedule, even when you're not looking.")
             if st.button(
                 "🤖 RUN AUTOMATION PASS NOW — advance everything AI can safely do on its own",
                 use_container_width=True,
@@ -627,7 +765,7 @@ def show_live_ops_route() -> None:
                 "unclaimed property, free samples, crypto airdrops, startup credits, and more keep "
                 "running too). Your queries just get priority so they're always included in each run."
             )
-            existing_custom_queries = load_custom_scan_queries(ROOT_DIR)
+            existing_custom_queries = load_custom_scan_queries(ROOT_DIR, username=_current_owner_username())
             new_query = st.text_input(
                 "Describe what you want found (e.g. \"free gold coin giveaway official\", "
                 "\"Tesla stock signup bonus no purchase\")",
@@ -636,7 +774,7 @@ def show_live_ops_route() -> None:
             if st.button("➕ Add to My Scans", type="primary") and new_query.strip():
                 if new_query.strip() not in existing_custom_queries:
                     existing_custom_queries.append(new_query.strip())
-                    save_custom_scan_queries(ROOT_DIR, existing_custom_queries)
+                    save_custom_scan_queries(ROOT_DIR, existing_custom_queries, username=_current_owner_username())
                     st.success("Added. It'll be included in the next scan.")
                     st.rerun()
                 else:
@@ -649,7 +787,7 @@ def show_live_ops_route() -> None:
                     q_col.write(f"🔎 {query_text}")
                     if remove_col.button("✕", key=f"custom_scan_remove_{idx}"):
                         existing_custom_queries.pop(idx)
-                        save_custom_scan_queries(ROOT_DIR, existing_custom_queries)
+                        save_custom_scan_queries(ROOT_DIR, existing_custom_queries, username=_current_owner_username())
                         st.rerun()
             else:
                 st.info("No personalized scans yet - the default broad scan is still running for you.")
@@ -702,7 +840,7 @@ def show_live_ops_route() -> None:
             st.markdown("### 📂 Your Pipeline — open a folder, pick an item, move it forward")
             stage_order = [
                 "Needs Approval", "Connect Needed", "Approved",
-                "Submitted", "Ready to Accept", "Accepted", "Received/Paid",
+                "Submitted", "Ready to Accept", "Accepted", "Received/Paid", "Expired",
             ]
             for stage_index, stage in enumerate(stage_order):
                 rows = pd.read_sql_query(
@@ -773,15 +911,15 @@ def show_live_ops_route() -> None:
         elif open_app == "notepad":
             st.caption("Free-form scratch notes, saved to disk so they're here next time you open this app.")
             existing_notes = ""
-            if DESKTOP_NOTES_PATH.exists():
+            if _desktop_notes_path().exists():
                 try:
-                    existing_notes = DESKTOP_NOTES_PATH.read_text(encoding="utf-8")
+                    existing_notes = _desktop_notes_path().read_text(encoding="utf-8")
                 except Exception:  # noqa: BLE001
                     existing_notes = ""
             notes_value = st.text_area("Notes", value=existing_notes, height=280, key="liveops_notepad_text")
             if st.button("💾 Save Notes", type="primary"):
-                DESKTOP_NOTES_PATH.parent.mkdir(parents=True, exist_ok=True)
-                DESKTOP_NOTES_PATH.write_text(notes_value, encoding="utf-8")
+                _desktop_notes_path().parent.mkdir(parents=True, exist_ok=True)
+                _desktop_notes_path().write_text(notes_value, encoding="utf-8")
                 st.success("Saved.")
 
         elif open_app == "console":
@@ -828,7 +966,7 @@ def show_live_ops_route() -> None:
                 type=["png", "jpg", "jpeg", "webp", "gif"],
                 key="liveops_wallpaper_upload",
             )
-            if DESKTOP_WALLPAPER_IMAGE_PATH.exists() and uploaded_wallpaper is None:
+            if _desktop_wallpaper_image_path().exists() and uploaded_wallpaper is None:
                 st.caption("A custom image is already saved. Upload a new one to replace it.")
             font_choice = st.selectbox(
                 "Font", list(DESKTOP_FONTS.keys()),
@@ -859,8 +997,8 @@ def show_live_ops_route() -> None:
                         "custom_wallpaper_mime": prefs.get("custom_wallpaper_mime", "image/png"),
                     }
                     if uploaded_wallpaper is not None:
-                        DESKTOP_WALLPAPER_IMAGE_PATH.parent.mkdir(parents=True, exist_ok=True)
-                        DESKTOP_WALLPAPER_IMAGE_PATH.write_bytes(uploaded_wallpaper.getvalue())
+                        _desktop_wallpaper_image_path().parent.mkdir(parents=True, exist_ok=True)
+                        _desktop_wallpaper_image_path().write_bytes(uploaded_wallpaper.getvalue())
                         new_prefs["custom_wallpaper_mime"] = uploaded_wallpaper.type or "image/png"
                         new_prefs["wallpaper"] = "Custom Image"
                     save_desktop_preferences(new_prefs)
@@ -888,6 +1026,35 @@ def show_live_ops_route() -> None:
             if needs_you.empty:
                 st.info("Nothing needs you right now.")
             else:
+                approvable_ids = [
+                    int(r.id) for r in needs_you.itertuples() if r.status == "Needs Approval"
+                ]
+                total_value = float(needs_you["expected_value_usd"].fillna(0).sum())
+                st.markdown(f"**${total_value:,.0f}** across **{len(needs_you)}** items")
+                if approvable_ids:
+                    if st.button(
+                        f"✅ Approve ALL {len(approvable_ids)} Ready Items & Push Forward",
+                        key="funnel_bulk_approve",
+                        type="primary",
+                        use_container_width=True,
+                        help="Approves every item that's just waiting on a plain approval click, "
+                        "then runs one automation pass to push all of them forward. Items needing a "
+                        "connection or with sensitive final steps are left for you to review individually.",
+                    ):
+                        for claim_id in approvable_ids:
+                            apply_claim_status(conn, claim_id, "Approved")
+                            _stamp_claim_owner_if_unset(conn, claim_id, _current_owner_username())
+                        conn.commit()
+                        summary = run_completion_engine_pass(
+                            conn,
+                            load_effective_user_context(),
+                            mode=str(control.get("execution_mode") or "Dry Run"),
+                            commit=str(control.get("execution_mode") or "Dry Run") != "Dry Run",
+                        )
+                        conn.commit()
+                        st.success(f"Approved {len(approvable_ids)} items and pushed forward: {summary}")
+                        st.rerun()
+                    st.markdown("---")
                 for row in needs_you.itertuples():
                     details = dict(load_claim_detail(conn, int(row.id)) or {})
                     with st.container(border=True):
@@ -901,6 +1068,7 @@ def show_live_ops_route() -> None:
                         with action_col:
                             if st.button("✅ Approve & Push Forward", key=f"funnel_approve_{row.id}", use_container_width=True, type="primary"):
                                 apply_claim_status(conn, int(row.id), "Approved")
+                                _stamp_claim_owner_if_unset(conn, int(row.id), _current_owner_username())
                                 conn.commit()
                                 summary = run_completion_engine_pass(
                                     conn,
@@ -3840,9 +4008,9 @@ def show_external_wallet_routes_panel() -> None:
                 st.write(ignored)
 
     if routes.found_count and st.button("Sync Public Wallet Routes Into Vault", key="sync_external_wallet_routes", use_container_width=True):
-        stored = USER_CONTEXT_STORE.load()
+        stored = _user_context_store().load()
         synced = apply_external_wallet_routes(stored, ROOT_DIR, overwrite=True)
-        USER_CONTEXT_STORE.save(synced)
+        _user_context_store().save(synced)
         st.success("Public wallet receiving routes synced into the safe User Vault fields.")
         st.rerun()
 
@@ -4113,7 +4281,7 @@ def process_dream_action() -> None:
 
 
 def load_effective_user_context() -> dict[str, Any]:
-    context = apply_external_authorizations(USER_CONTEXT_STORE.load(), external_authorization_rows(ROOT_DIR))
+    context = apply_external_authorizations(_user_context_store().load(), external_authorization_rows(ROOT_DIR))
     return apply_external_wallet_routes(context, ROOT_DIR)
 
 
@@ -5758,6 +5926,45 @@ def require_owner_access() -> bool:
         st.stop()
         return False
 
+    configured_pins = _configured_access_pins()
+    if configured_pins:
+        if st.session_state.get("owner_access_granted") and st.session_state.get("owner_access_user"):
+            _show_access_identity()
+            return True
+
+        inject_bios_boot_style()
+        st.markdown(
+            """
+            <div class="bios-screen">
+              <div class="bios-header">
+                <div class="bios-title">QUANTUMGAINS BIOS v1.0</div>
+                <div class="bios-line">(C) QuantumGains Systems -- Owner Access Module</div>
+              </div>
+              <div class="bios-line">MEMORY TEST ......... OK</div>
+              <div class="bios-line">ACCESS CONTROL ...... OK</div>
+              <div class="bios-line bios-cursor">ENTER YOUR PERSONAL CODE TO BOOT</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        entered = st.text_input("ACCESS CODE", type="password", key="quantumgains_access_pin_input")
+        if st.button("> UNLOCK", use_container_width=True):
+            matched = None
+            for entry in configured_pins:
+                if verify_password(str(entered or ""), str(entry.get("pin_hash") or "")):
+                    matched = entry
+                    break
+            if matched:
+                st.session_state["owner_access_granted"] = True
+                st.session_state["owner_access_user"] = str(matched.get("username") or "owner")
+                st.session_state["owner_access_role"] = str(matched.get("role") or "member")
+                _route_into_desktop_after_login()
+                st.rerun()
+            else:
+                st.error("ACCESS DENIED")
+        st.stop()
+        return False
+
     expected_pin = _configured_access_pin()
     expected_pin_hash = _configured_access_pin_hash()
     if not expected_pin and not expected_pin_hash:
@@ -5801,6 +6008,51 @@ def _route_into_desktop_after_login() -> None:
             st.query_params["page"] = "live_ops"
     except Exception:  # noqa: BLE001
         pass
+
+
+def _configured_access_pins() -> list[dict[str, str]]:
+    """Multiple personal access codes, one per teammate, each with its own identity.
+
+    QUANTUMGAINS_ACCESS_PINS_JSON is a JSON list like:
+    [{"pin_hash": "pbkdf2_sha256$...", "username": "owner", "role": "owner"}, ...]
+    Generate hashes with scripts/create_access_pins.py so raw codes never sit in config.
+    """
+    raw = os.getenv("QUANTUMGAINS_ACCESS_PINS_JSON", "")
+    if not raw:
+        try:
+            raw = str(st.secrets.get("QUANTUMGAINS_ACCESS_PINS_JSON", "") or "")
+        except Exception:  # noqa: BLE001
+            raw = ""
+    raw = raw.strip()
+    if not raw:
+        return []
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(payload, list):
+        return []
+    entries = []
+    for record in payload:
+        if not isinstance(record, dict):
+            continue
+        pin_hash = str(record.get("pin_hash") or "").strip()
+        username = str(record.get("username") or "").strip().lower()
+        if pin_hash and username:
+            entries.append({
+                "pin_hash": pin_hash,
+                "username": username,
+                "role": str(record.get("role") or "member").strip() or "member",
+            })
+    return entries
+
+
+def _current_owner_username() -> str:
+    return str(st.session_state.get("owner_access_user") or "owner").strip().lower() or "owner"
+
+
+def _current_owner_role() -> str:
+    return str(st.session_state.get("owner_access_role") or "owner").strip().lower() or "owner"
 
 
 def _configured_access_pin() -> str:
@@ -7925,10 +8177,10 @@ def save_autorun_control(control: dict[str, object]) -> None:
 
 def load_desktop_preferences() -> dict[str, object]:
     prefs = dict(DEFAULT_DESKTOP_PREFS)
-    if not DESKTOP_PREFS_PATH.exists():
+    if not _desktop_prefs_path().exists():
         return prefs
     try:
-        payload = json.loads(DESKTOP_PREFS_PATH.read_text(encoding="utf-8"))
+        payload = json.loads(_desktop_prefs_path().read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
         return prefs
     if isinstance(payload, dict):
@@ -7947,14 +8199,14 @@ def load_desktop_preferences() -> dict[str, object]:
 def _desktop_wallpaper_data_uri(mime: str) -> str:
     import base64
 
-    raw = DESKTOP_WALLPAPER_IMAGE_PATH.read_bytes()
+    raw = _desktop_wallpaper_image_path().read_bytes()
     encoded = base64.b64encode(raw).decode("ascii")
     return f"data:{mime};base64,{encoded}"
 
 
 def save_desktop_preferences(prefs: dict[str, object]) -> None:
-    DESKTOP_PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    DESKTOP_PREFS_PATH.write_text(json.dumps(prefs, indent=2), encoding="utf-8")
+    _desktop_prefs_path().parent.mkdir(parents=True, exist_ok=True)
+    _desktop_prefs_path().write_text(json.dumps(prefs, indent=2), encoding="utf-8")
 
 
 def show_simple_start_panel(conn: sqlite3.Connection) -> None:
@@ -8612,7 +8864,7 @@ def show_owner_setup_progress_panel(
 
 
 def show_user_profile_autofill_vault(conn: sqlite3.Connection, standalone: bool = True) -> None:
-    context = USER_CONTEXT_STORE.load()
+    context = _user_context_store().load()
     completeness = compute_completeness(context)
     dependencies = global_input_dependency_map(rows_for_action_center(conn))
 
@@ -8953,13 +9205,13 @@ def show_user_profile_autofill_vault(conn: sqlite3.Connection, standalone: bool 
                 context["business"] = business
                 context["preferences"] = preferences
                 context["automation_limits"] = automation
-                USER_CONTEXT_STORE.save(apply_preference_profile(context))
+                _user_context_store().save(apply_preference_profile(context))
                 SQLiteStore(DB_PATH).normalize_required_inputs()
                 st.success("User Profile / Autofill Vault saved and readiness refreshed.")
                 st.rerun()
 
             if reset_clicked:
-                USER_CONTEXT_STORE.save(default_user_context())
+                _user_context_store().save(default_user_context())
                 SQLiteStore(DB_PATH).normalize_required_inputs()
                 st.success("User Profile / Autofill Vault cleared and readiness refreshed.")
                 st.rerun()
@@ -9032,7 +9284,7 @@ def show_credential_vault_panel() -> None:
         st.warning("Install `cryptography` from requirements.txt to enable encrypted credential storage.")
         return
 
-    vault = CredentialVault.for_root(ROOT_DIR)
+    vault = CredentialVault.for_root(ROOT_DIR, username=_current_owner_username())
     if not vault.exists():
         setup_password = st.text_input("Create master password", type="password", key="credential_vault_setup_password")
         setup_confirm = st.text_input("Confirm master password", type="password", key="credential_vault_setup_confirm")
@@ -10322,14 +10574,14 @@ def show_profile_completion_center(context: dict[str, object]) -> None:
             context["accounts"] = accounts
             context["business"] = business
             context["preferences"] = preferences
-            USER_CONTEXT_STORE.save(apply_preference_profile(context))
+            _user_context_store().save(apply_preference_profile(context))
             SQLiteStore(DB_PATH).normalize_required_inputs()
             st.success("Profile Completion Center saved and action readiness refreshed.")
             st.rerun()
 
 
 def show_user_context(conn: sqlite3.Connection) -> None:
-    context = USER_CONTEXT_STORE.load()
+    context = _user_context_store().load()
     st.caption("Reusable owner context for safe preparation. Do not enter passwords or full bank account numbers.")
     show_open_to_everything_mode(context)
     show_user_context_completeness(context)
@@ -10411,13 +10663,13 @@ def show_user_context(conn: sqlite3.Connection) -> None:
         context["automation_limits"] = automation
 
         if st.form_submit_button("Save User Context"):
-            USER_CONTEXT_STORE.save(apply_preference_profile(context))
+            _user_context_store().save(apply_preference_profile(context))
             SQLiteStore(DB_PATH).normalize_required_inputs()
             st.success("User Context saved and input readiness refreshed.")
             st.rerun()
 
     st.markdown("**Redacted Preview**")
-    st.json(redact_user_context(USER_CONTEXT_STORE.load()))
+    st.json(redact_user_context(_user_context_store().load()))
 
 
 def show_open_to_everything_mode(context: dict[str, object]) -> None:
@@ -11060,7 +11312,7 @@ def show_execution_statuses(
     )
     if not df.empty and "input_status" in df.columns:
         df.insert(2, "readiness_badge", df["input_status"].map(input_status_badge))
-        context = USER_CONTEXT_STORE.load()
+        context = _user_context_store().load()
         dependencies = [dependency_for_opportunity(row, context) for row in df.to_dict("records")]
         df.insert(3, "Autofill Readiness", [item.autofill_readiness for item in dependencies])
         df.insert(4, "READY", [item.ready for item in dependencies])
@@ -11415,6 +11667,19 @@ def load_claim_detail(conn: sqlite3.Connection, claim_queue_id: int) -> sqlite3.
         """,
         (claim_queue_id,),
     ).fetchone()
+
+
+def _stamp_claim_owner_if_unset(conn: sqlite3.Connection, claim_queue_id: int, username: str) -> None:
+    """Record whose vault/identity should be used to finish this claim.
+
+    First person to approve a shared-queue item "claims" it - this is what keeps the
+    always-on background loop from ever auto-submitting one teammate's claim using a
+    different teammate's personal info. Never overwrites an existing owner.
+    """
+    conn.execute(
+        "UPDATE claim_queue SET owner_username=? WHERE id=? AND (owner_username IS NULL OR owner_username='')",
+        (username, claim_queue_id),
+    )
 
 
 def apply_claim_status(conn: sqlite3.Connection, claim_queue_id: int, status: str) -> None:

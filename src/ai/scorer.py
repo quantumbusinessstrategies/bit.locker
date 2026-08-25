@@ -89,7 +89,19 @@ def normalize_score(score: dict[str, Any], candidate: dict[str, Any] | None = No
         normalized.get("expected_delivery_method", normalized.get("destination")),
         "unknown",
     )
-    normalized["should_add_to_claim_queue"] = _bool(normalized.get("should_add_to_claim_queue"))
+    is_expired_or_closed = _bool(normalized.get("is_expired_or_closed"))
+    normalized["is_expired_or_closed"] = is_expired_or_closed
+    normalized["application_deadline"] = _iso_date(normalized.get("application_deadline_iso"))
+    normalized["should_add_to_claim_queue"] = (
+        False if is_expired_or_closed else _bool(normalized.get("should_add_to_claim_queue"))
+    )
+    if is_expired_or_closed:
+        reasons = normalized.get("disqualification_reasons")
+        if not isinstance(reasons, list):
+            reasons = []
+        if "expired or closed" not in reasons:
+            reasons.append("expired or closed")
+        normalized["disqualification_reasons"] = reasons
     normalized["fastest_gain_score"] = _ranking_score(
         normalized.get("fastest_gain_score", _fastest_gain_score(normalized))
     )
@@ -183,6 +195,19 @@ def _text(value: Any, default: str = "") -> str:
         return default
     text = str(value).strip()
     return text or default
+
+
+def _iso_date(value: Any) -> str:
+    text = str(value or "").strip()
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+        return ""
+    try:
+        import datetime as _dt
+
+        _dt.date.fromisoformat(text)
+    except ValueError:
+        return ""
+    return text
 
 
 def _effort_from_minutes(minutes: float) -> float:

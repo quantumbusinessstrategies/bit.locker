@@ -22,6 +22,8 @@ Hard rules:
 
 Score the opportunity using only the provided source data. Be conservative. If eligibility, value, or terms are unclear, lower probability and increase risk. If the page looks like generic content rather than a specific claimable opportunity, mark it low probability and set should_add_to_claim_queue to false.
 
+Expiration check - do this first, it saves real time and money downstream: if the source content states or clearly implies the opportunity is already closed, expired, no longer accepting applications/entries, from a past year's program that has ended, or the stated deadline/window has already passed relative to when this content was published, set is_expired_or_closed to true and should_add_to_claim_queue to false, and explain why in disqualification_reasons. If a specific application/entry/claim deadline is stated (even for a still-open opportunity), extract it into application_deadline_iso as YYYY-MM-DD; if no deadline is stated or it is a rolling/ongoing/no-deadline offer, leave application_deadline_iso as an empty string. Do not guess a deadline that is not actually stated.
+
 Consumer freebies, giveaways, sweepstakes, free digital downloads, community giveaways (e.g. Freecycle), free samples, and signup/welcome bonuses are all valid gain sources with the same standing as grants, settlements, or startup credits. Do not treat a source as lower-quality just because it is a casual consumer freebie site rather than an official government or institutional page - judge each individual opportunity on its own merits.
 
 Probability semantics - this matters for ranking:
@@ -74,7 +76,9 @@ Return only valid JSON with this exact shape:
   "required_user_action": "approve|connect|sign|claim|accept|provide_shipping|provide_payout|reject|later",
   "official_platform_action_required": true,
   "summary": "one-sentence summary",
-  "disqualification_reasons": []
+  "disqualification_reasons": [],
+  "is_expired_or_closed": false,
+  "application_deadline_iso": ""
 }
 
 Use 0-100 for fastest_gain_score and highest_value_score. Higher is better.

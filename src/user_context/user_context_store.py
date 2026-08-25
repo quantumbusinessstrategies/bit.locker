@@ -12,8 +12,9 @@ class UserContextStore:
         self.path = path
 
     @classmethod
-    def for_root(cls, root_dir: Path) -> "UserContextStore":
-        return cls(root_dir / "data" / "user_context.json")
+    def for_root(cls, root_dir: Path, username: str = "owner") -> "UserContextStore":
+        suffix = "" if username == "owner" else f"_{username}"
+        return cls(root_dir / "data" / f"user_context{suffix}.json")
 
     def load(self) -> dict[str, Any]:
         if not self.path.exists():

@@ -1,0 +1,30 @@
+app = "qubit-locker"
+primary_region = "iad"
+
+[build]
+
+[env]
+  DATABASE_PATH = "/app/data/gain_entity.sqlite3"
+  PYTHONPATH = "/app/src"
+  OPENAI_MODEL = "gpt-4o-mini"
+
+[processes]
+  app = "sh -c \"(while true; do python scripts/safe_autonomy_loop.py --log /app/data/safe_autonomy_loop.log --duration-seconds 1800 --limit 320 --inspect-limit 30; sleep 30; done) & exec streamlit run yourscript.py --server.address=0.0.0.0 --server.port=8080 --server.headless=true\""
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1024mb"
+  processes = ["app"]
+
+[mounts]
+  source = "qubit_locker_data"
+  destination = "/app/data"
+  processes = ["app"]

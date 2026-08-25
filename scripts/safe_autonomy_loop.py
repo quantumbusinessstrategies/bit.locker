@@ -221,6 +221,7 @@ browser_attempted = 0
 browser_submitted = 0
 browser_blocked = 0
 skipped_previous_browser_block = 0
+skipped_teammate_owned = 0
 consent_store = SubmissionConsentStore.for_root(ROOT)
 context = apply_external_authorizations(UserContextStore.for_root(ROOT).load(), external_authorization_rows(ROOT))
 for item in safe_items:
@@ -234,6 +235,12 @@ for item in safe_items:
         (item.claim_queue_id,),
     ).fetchone()
     if detail:
+        claim_owner = str(detail['owner_username'] or '').strip().lower() if 'owner_username' in detail.keys() else ''
+        if claim_owner and claim_owner != 'owner':
+            # Claimed by a teammate, not the primary owner - only their own manual
+            # in-app approval may use their vault. The unattended loop never guesses.
+            skipped_teammate_owned += 1
+            continue
         try:
             previous_payload = json.loads(str(detail['action_engine_json'] or '{}'))
         except json.JSONDecodeError:
@@ -315,6 +322,7 @@ print({
     'browser_submitted': browser_submitted,
     'browser_blocked_or_paused': browser_blocked,
     'skipped_previous_browser_block': skipped_previous_browser_block,
+    'skipped_teammate_owned': skipped_teammate_owned,
 })
 """
 

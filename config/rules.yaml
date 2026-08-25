@@ -83,6 +83,7 @@ statuses:
   - Rejected
   - Later
   - Paid Mode Later
+  - Expired
 dashboard_status_actions:
   Approve: Approved
   Reject: Rejected

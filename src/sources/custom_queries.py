@@ -7,12 +7,13 @@ from typing import Any
 from sources.search_queries import SearchQueryCatalog
 
 
-def _custom_scan_queries_path(root_dir: Path) -> Path:
-    return root_dir / "data" / "custom_scan_queries.json"
+def _custom_scan_queries_path(root_dir: Path, username: str = "owner") -> Path:
+    suffix = "" if username == "owner" else f"_{username}"
+    return root_dir / "data" / f"custom_scan_queries{suffix}.json"
 
 
-def load_custom_scan_queries(root_dir: Path) -> list[str]:
-    path = _custom_scan_queries_path(root_dir)
+def load_custom_scan_queries(root_dir: Path, username: str = "owner") -> list[str]:
+    path = _custom_scan_queries_path(root_dir, username)
     if not path.exists():
         return []
     try:
@@ -24,11 +25,35 @@ def load_custom_scan_queries(root_dir: Path) -> list[str]:
     return [str(q).strip() for q in payload if str(q).strip()]
 
 
-def save_custom_scan_queries(root_dir: Path, queries: list[str]) -> None:
-    path = _custom_scan_queries_path(root_dir)
+def save_custom_scan_queries(root_dir: Path, queries: list[str], username: str = "owner") -> None:
+    path = _custom_scan_queries_path(root_dir, username)
     path.parent.mkdir(parents=True, exist_ok=True)
     cleaned = [str(q).strip() for q in queries if str(q).strip()]
     path.write_text(json.dumps(cleaned, indent=2), encoding="utf-8")
+
+
+def load_all_custom_scan_queries(root_dir: Path) -> list[str]:
+    """Merge every person's personalized scan queries for the shared discovery run.
+
+    Each teammate manages their own list (load/save_custom_scan_queries with their
+    username), but the actual internet scan is one shared engine, so this collects
+    everyone's asks into one deduplicated list for that run.
+    """
+    merged: list[str] = []
+    seen: set[str] = set()
+    for path in sorted((root_dir / "data").glob("custom_scan_queries*.json")):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+        if not isinstance(payload, list):
+            continue
+        for query in payload:
+            cleaned = str(query).strip()
+            if cleaned and cleaned.lower() not in seen:
+                seen.add(cleaned.lower())
+                merged.append(cleaned)
+    return merged
 
 
 def apply_custom_queries_to_rules(rules: dict[str, Any], custom_queries: list[str]) -> dict[str, Any]:
