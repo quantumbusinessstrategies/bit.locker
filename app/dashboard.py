@@ -234,6 +234,8 @@ DEFAULT_DESKTOP_PREFS = {
     "icon_density": "Normal",
     "icon_scale": 1.2,
     "custom_wallpaper_mime": "image/png",
+    "display_name": "",
+    "taskbar_color": "#c0c0c0",
 }
 ACCESS_PIN_ENV_KEYS = ["QUANTUMGAINS_ACCESS_PIN", "GAIN_ENTITY_ACCESS_PIN", "STREAMLIT_ACCESS_PIN"]
 ACCESS_PIN_HASH_ENV_KEYS = ["QUANTUMGAINS_ACCESS_PIN_HASH", "GAIN_ENTITY_ACCESS_PIN_HASH", "STREAMLIT_ACCESS_PIN_HASH"]
@@ -352,6 +354,7 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
         wallpaper = DESKTOP_WALLPAPERS.get(wallpaper_choice, DESKTOP_WALLPAPERS["Lofi Sunset"])
     font_stack = DESKTOP_FONTS.get(str(prefs.get("font")), DESKTOP_FONTS["Retro Terminal (VT323)"])
     accent = str(prefs.get("accent") or "#000080")
+    taskbar_color = str(prefs.get("taskbar_color") or "#c0c0c0")
     icon_scale = float(prefs.get("icon_scale") or 1.2)
     icon_width = f"{int(84 * icon_scale)}px" if str(prefs.get("icon_density")) != "Compact" else f"{int(64 * icon_scale)}px"
     icon_font_size = f"{14 * icon_scale:.0f}px"
@@ -411,7 +414,7 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
         div[class*="st-key-liveops_minimize_window"] button,
         div[class*="st-key-liveops_maximize_window"] button,
         div[class*="st-key-liveops_close_window"] button {{
-            background: #c0c0c0 !important; color: #000 !important; font-weight: 900 !important;
+            background: {taskbar_color} !important; color: #000 !important; font-weight: 900 !important;
             border: 1px solid #fff !important; border-right-color: #000 !important; border-bottom-color: #000 !important;
             border-radius: 0 !important; height: 27px !important; padding: 0 !important;
             font-family: sans-serif !important;
@@ -420,11 +423,11 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
         div[class*="st-key-liveops_close_window"] button:hover {{ background: #ff4d4d !important; }}
         div[class*="st-key-win95_taskbar"] {{
             position: fixed !important; left: 0; bottom: 0; width: 100%; z-index: 99999;
-            background: #c0c0c0; border-top: 2px solid #fff;
+            background: {taskbar_color}; border-top: 2px solid #fff;
             box-shadow: 0 -1px 0 #808080 inset; padding: 4px 8px 6px 8px;
         }}
         div[class*="st-key-win95_taskbar"] [data-testid="stPopoverButton"] button {{
-            background: #c0c0c0 !important; color: #000 !important; font-weight: 900 !important;
+            background: {taskbar_color} !important; color: #000 !important; font-weight: 900 !important;
             border: 1px solid #fff !important; border-right-color: #000 !important; border-bottom-color: #000 !important;
             border-radius: 0 !important; font-family: {font_stack} !important;
             font-size: {min(16, 14 * icon_scale):.0f}px !important;
@@ -509,6 +512,7 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
         }}
         .win95-callout-alert {{ background: #fff4c2; color: #000; }}
         .win95-callout-clear {{ background: #d9f2d9; color: #000; }}
+        .win95-callout-received {{ background: #ffe9a8; color: #000; border-color: #b8860b; }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -543,6 +547,7 @@ def show_live_ops_route() -> None:
         ("gain_finder", "🎯", "Gain\nFinder"),
         ("pipeline", "📂", "Pipeline"),
         ("recurring", "♻️", "Recurring\nGains"),
+        ("connectors", "🔌", "Connect\nAccounts"),
         ("vault", "🔐", "Vault"),
         ("automation", "🔁", "Automation"),
         ("custom_scan", "🔎", "Add\nScan"),
@@ -556,13 +561,14 @@ def show_live_ops_route() -> None:
         ("settings", "⚙️", "Settings"),
     ]
     quicklaunch_defs = [d for d in icon_defs if d[0] in {
-        "gain_finder", "pipeline", "recurring", "vault", "automation", "mode", "settings",
+        "gain_finder", "pipeline", "recurring", "connectors", "vault", "automation", "mode", "settings",
     }]
     app_titles = {
         "desktop": "🐸 QuantumGains 95",
         "gain_finder": "🎯 Gain Finder — Needs Your Approval",
         "pipeline": "📂 Pipeline",
         "recurring": "♻️ Recurring Gains",
+        "connectors": "🔌 Connect Accounts",
         "vault": "🔐 Vault & Profile",
         "automation": "🔁 Automation",
         "custom_scan": "🔎 Add a Personalized Scan",
@@ -633,12 +639,14 @@ def show_live_ops_route() -> None:
                 commit=str(control.get("execution_mode") or "Dry Run") != "Dry Run",
             )
             conn.commit()
-            st.caption(f"🤖 Auto-advanced on page load: {_format_pass_summary(summary)}")
+            with st.expander("🤖 Background sync details", expanded=False):
+                st.caption(_format_pass_summary(summary))
 
         if open_app == "desktop":
+            greeting_name = str(prefs.get("display_name") or "").strip() or _current_owner_username().title()
             st.markdown(
-                "Welcome back, owner. Everything on this desktop is real and live-wired — "
-                "nothing here is a mockup. Click an icon above, or open the Start menu in the taskbar."
+                f"Welcome back, {html.escape(greeting_name)}. Everything on this desktop is real and "
+                "live-wired — nothing here is a mockup. Click an icon above, or open the Start menu in the taskbar."
             )
             quick_counts = conn.execute(
                 """
@@ -651,12 +659,22 @@ def show_live_ops_route() -> None:
                     (SELECT COUNT(*) FROM claim_queue
                         WHERE status='Submitted' AND (owner_username IS NULL OR owner_username='')) AS zero_click_count,
                     (SELECT COALESCE(SUM(expected_value_usd),0) FROM claim_queue
-                        WHERE status='Submitted' AND (owner_username IS NULL OR owner_username='')) AS zero_click_value
+                        WHERE status='Submitted' AND (owner_username IS NULL OR owner_username='')) AS zero_click_value,
+                    (SELECT COALESCE(SUM(estimated_value_usd),0) FROM received_log) AS total_received_usd
                 """
             ).fetchone()
             quick = dict(quick_counts) if quick_counts else {}
             needs_you_count = int(quick.get("needs_you") or 0)
             ready_value = float(quick.get("ready_value") or 0)
+            total_received_usd = float(quick.get("total_received_usd") or 0)
+
+            st.markdown(
+                f'<div class="win95-callout win95-callout-received">'
+                f"💰 <b>${total_received_usd:,.0f} actually in your possession</b> — real money/assets "
+                f"received so far, not potential value"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
 
             if needs_you_count:
                 top_ready = conn.execute(
@@ -989,6 +1007,46 @@ def show_live_ops_route() -> None:
                         )
                         st.caption(f"Status: {row.status} · Next due: {next_due}")
 
+        elif open_app == "connectors":
+            st.markdown("### 🔌 Connect Accounts — the single biggest lever for less work")
+            st.caption(
+                "This is usually your largest blocked bucket: items that are fully scored and ready, "
+                "just waiting on you to log into one platform (once) so the AI can safely reuse that "
+                "session for approved work. One connection here often unlocks many items at once."
+            )
+            blocked_by_domain = pd.read_sql_query(
+                """
+                SELECT o.root_domain, COUNT(*) AS item_count, COALESCE(SUM(cq.expected_value_usd),0) AS total_value
+                FROM claim_queue cq
+                JOIN opportunities o ON o.id = cq.opportunity_id
+                WHERE cq.status = 'Connect Needed'
+                GROUP BY o.root_domain
+                ORDER BY total_value DESC
+                LIMIT 25
+                """,
+                conn,
+            )
+            if blocked_by_domain.empty:
+                st.info("Nothing is waiting on a connection right now.")
+            else:
+                st.markdown(
+                    f"**${float(blocked_by_domain['total_value'].sum()):,.0f}** blocked on connections "
+                    f"across **{len(blocked_by_domain)}** platforms."
+                )
+                show_dataframe(blocked_by_domain)
+            st.markdown("---")
+            st.markdown(
+                '<a target="_self" href="/?page=connectors" style="display:inline-block;padding:8px 16px;'
+                'background:#000080;color:#fff;text-decoration:none;font-weight:900;border:2px solid #fff;'
+                'border-right-color:#000;border-bottom-color:#000;">🔌 Open Connection Manager — log in once per platform</a>',
+                unsafe_allow_html=True,
+            )
+            st.caption(
+                "Opens the full connection manager (login once, save a local browser session for Live "
+                "Assist to reuse). This is the only place account logins ever happen - never automated "
+                "without you present."
+            )
+
         elif open_app == "task_manager":
             st.caption("Real background processes and pipeline throughput — not a mockup.")
             proc_cols = st.columns(3)
@@ -1012,6 +1070,29 @@ def show_live_ops_route() -> None:
             perf_cols[0].metric("Opportunities scanned", total_opps)
             perf_cols[1].metric("Claim queue depth", total_claims)
             perf_cols[2].metric("Autorun", "ON" if control.get("enabled") else "OFF")
+
+            st.markdown("**Received / Paid Log**")
+            received_rows = pd.read_sql_query(
+                """
+                SELECT rl.received_at, rl.received_type, rl.estimated_value_usd, rl.destination, o.title
+                FROM received_log rl
+                LEFT JOIN claim_queue cq ON cq.id = rl.claim_queue_id
+                LEFT JOIN opportunities o ON o.id = cq.opportunity_id
+                ORDER BY rl.received_at DESC
+                """,
+                conn,
+            )
+            if received_rows.empty:
+                st.caption("Nothing received yet.")
+            else:
+                show_dataframe(received_rows)
+                st.download_button(
+                    "⬇️ Export Received/Paid Log (CSV)",
+                    data=received_rows.to_csv(index=False),
+                    file_name="quantumgains_received_log.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
 
         elif open_app == "notepad":
             st.caption("Free-form scratch notes, saved to disk so they're here next time you open this app.")
@@ -1165,6 +1246,15 @@ def show_live_ops_route() -> None:
 
         elif open_app == "settings":
             st.caption("Personalize this desktop — saved to disk, applies everywhere you log in.")
+            display_name_choice = st.text_input(
+                "Display name (shown in the welcome message — just for you, doesn't change your login)",
+                value=str(prefs.get("display_name") or ""),
+                max_chars=40,
+                placeholder=_current_owner_username().title(),
+            )
+            taskbar_color_choice = st.color_picker(
+                "Taskbar color", value=str(prefs.get("taskbar_color", "#c0c0c0")),
+            )
             wallpaper_options = list(DESKTOP_WALLPAPERS.keys()) + ["Custom Image"]
             current_wallpaper = str(prefs.get("wallpaper", "Lofi Sunset"))
             wallpaper_choice = st.selectbox(
@@ -1206,6 +1296,8 @@ def show_live_ops_route() -> None:
                         "icon_density": density_choice,
                         "icon_scale": scale_choice,
                         "custom_wallpaper_mime": prefs.get("custom_wallpaper_mime", "image/png"),
+                        "display_name": display_name_choice.strip(),
+                        "taskbar_color": taskbar_color_choice,
                     }
                     if uploaded_wallpaper is not None:
                         _desktop_wallpaper_image_path().parent.mkdir(parents=True, exist_ok=True)
@@ -1223,20 +1315,40 @@ def show_live_ops_route() -> None:
 
         elif open_app == "gain_finder":
             st.caption("This is the only list you really need to check day to day.")
-            needs_you = pd.read_sql_query(
-                """
-                SELECT cq.id, cq.status, o.title, cq.expected_value_usd, cq.fastest_gain_score,
-                       cq.highest_value_score
-                FROM claim_queue cq
-                JOIN opportunities o ON o.id = cq.opportunity_id
-                WHERE cq.status IN ('Needs Approval', 'Connect Needed', 'Ready to Accept')
-                ORDER BY (COALESCE(cq.fastest_gain_score,0) + COALESCE(cq.highest_value_score,0)) DESC
-                LIMIT 200
-                """,
-                conn,
+            search_term = st.text_input(
+                "🔍 Search by keyword (title)", key="liveops_gain_finder_search",
+                placeholder="e.g. \"paypal\", \"amazon\", \"grant\"",
             )
+            if search_term.strip():
+                needs_you = pd.read_sql_query(
+                    """
+                    SELECT cq.id, cq.status, o.title, cq.expected_value_usd, cq.fastest_gain_score,
+                           cq.highest_value_score
+                    FROM claim_queue cq
+                    JOIN opportunities o ON o.id = cq.opportunity_id
+                    WHERE cq.status IN ('Needs Approval', 'Connect Needed', 'Ready to Accept')
+                      AND lower(o.title) LIKE ?
+                    ORDER BY (COALESCE(cq.fastest_gain_score,0) + COALESCE(cq.highest_value_score,0)) DESC
+                    LIMIT 500
+                    """,
+                    conn,
+                    params=(f"%{search_term.strip().lower()}%",),
+                )
+            else:
+                needs_you = pd.read_sql_query(
+                    """
+                    SELECT cq.id, cq.status, o.title, cq.expected_value_usd, cq.fastest_gain_score,
+                           cq.highest_value_score
+                    FROM claim_queue cq
+                    JOIN opportunities o ON o.id = cq.opportunity_id
+                    WHERE cq.status IN ('Needs Approval', 'Connect Needed', 'Ready to Accept')
+                    ORDER BY (COALESCE(cq.fastest_gain_score,0) + COALESCE(cq.highest_value_score,0)) DESC
+                    LIMIT 200
+                    """,
+                    conn,
+                )
             if needs_you.empty:
-                st.info("Nothing needs you right now.")
+                st.info("No matches." if search_term.strip() else "Nothing needs you right now.")
             else:
                 approvable_ids = [
                     int(r.id) for r in needs_you.itertuples() if r.status == "Needs Approval"
