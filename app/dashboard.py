@@ -633,7 +633,7 @@ def show_live_ops_route() -> None:
                 commit=str(control.get("execution_mode") or "Dry Run") != "Dry Run",
             )
             conn.commit()
-            st.caption(f"🤖 Auto-advanced on page load: {summary}")
+            st.caption(f"🤖 Auto-advanced on page load: {_format_pass_summary(summary)}")
 
         if open_app == "desktop":
             st.markdown(
@@ -803,7 +803,7 @@ def show_live_ops_route() -> None:
                     commit=str(control.get("execution_mode") or "Dry Run") != "Dry Run",
                 )
                 conn.commit()
-                st.success(f"Automation pass complete: {summary}")
+                st.success(f"Automation pass complete: {_format_pass_summary(summary)}")
                 st.rerun()
             st.markdown("---")
             st.caption(
@@ -1154,7 +1154,7 @@ def show_live_ops_route() -> None:
                         commit=str(control.get("execution_mode") or "Dry Run") != "Dry Run",
                     )
                     conn.commit()
-                    st.success(f"$ run_automation_pass_now -> {summary}")
+                    st.success(f"$ run_automation_pass_now -> {_format_pass_summary(summary)}")
                     st.rerun()
             with console_cols[1]:
                 if st.button("▶ refresh_queue_state", use_container_width=True):
@@ -1264,7 +1264,7 @@ def show_live_ops_route() -> None:
                             commit=str(control.get("execution_mode") or "Dry Run") != "Dry Run",
                         )
                         conn.commit()
-                        st.success(f"Approved {len(approvable_ids)} items and pushed forward: {summary}")
+                        st.success(f"Approved {len(approvable_ids)} items and pushed forward: {_format_pass_summary(summary)}")
                         st.rerun()
                     st.markdown("---")
                 for row in needs_you.itertuples():
@@ -1289,7 +1289,7 @@ def show_live_ops_route() -> None:
                                     commit=str(control.get("execution_mode") or "Dry Run") != "Dry Run",
                                 )
                                 conn.commit()
-                                st.success(f"Pushed forward: {summary}")
+                                st.success(f"Pushed forward: {_format_pass_summary(summary)}")
                                 st.rerun()
 
     mode_chip_color = "#3b82f6" if paid_mode_on else "#1fbf4d"
@@ -6257,6 +6257,26 @@ def _configured_access_pins() -> list[dict[str, str]]:
                 "role": str(record.get("role") or "member").strip() or "member",
             })
     return entries
+
+
+def _format_pass_summary(summary: object) -> str:
+    data = summary.to_dict() if hasattr(summary, "to_dict") else {}
+    if not data:
+        return "nothing to advance."
+    parts = [f"{int(data.get('scanned', 0) or 0)} scanned"]
+    if data.get("ai_work_advanced"):
+        parts.append(f"{int(data['ai_work_advanced'])} advanced by AI")
+    if data.get("safe_packets_prepared"):
+        parts.append(f"{int(data['safe_packets_prepared'])} prepped")
+    if data.get("ready_for_approval"):
+        parts.append(f"{int(data['ready_for_approval'])} ready for you")
+    if data.get("blocked_missing_fields"):
+        parts.append(f"{int(data['blocked_missing_fields'])} waiting on Vault info")
+    if data.get("blocked_connectors"):
+        parts.append(f"{int(data['blocked_connectors'])} waiting on a connection")
+    if data.get("blocked_sensitive"):
+        parts.append(f"{int(data['blocked_sensitive'])} waiting on your final say")
+    return ", ".join(parts) + "."
 
 
 def _current_owner_username() -> str:
