@@ -378,6 +378,12 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
         .stApp, .stApp p, .stApp span, .stApp label, .stMarkdown, .stCaption {{
             font-family: {font_stack} !important;
         }}
+        [data-testid="stIconMaterial"] {{
+            font-family: "Material Symbols Outlined", "Material Symbols Rounded", sans-serif !important;
+        }}
+        div[class*="st-key-win95_taskbar"] [data-testid="stPopoverButton"] [data-testid="stIconMaterial"] {{
+            display: none !important;
+        }}
         div[class*="st-key-liveops_icon_"] button {{
             display: flex !important; flex-direction: column; align-items: center;
             justify-content: center; gap: 3px; height: {int(68 * icon_scale)}px !important; width: 100% !important;
