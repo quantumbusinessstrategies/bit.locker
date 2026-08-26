@@ -1809,9 +1809,11 @@ class SQLiteStore:
             return list(conn.execute(query, params).fetchall())
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.database_path)
+        conn = sqlite3.connect(self.database_path, timeout=30)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys=ON")
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=30000")
         return conn
 
     def _ensure_opportunity_columns(self, conn: sqlite3.Connection) -> None:

@@ -215,7 +215,8 @@ def _candidate_paths(root_dir: Path | None) -> list[Path]:
 
 
 def _load_sqlite_wallets(path: Path, result: ExternalWalletRoutes) -> None:
-    with sqlite3.connect(path) as conn:
+    with sqlite3.connect(path, timeout=30) as conn:
+        conn.execute("PRAGMA busy_timeout=30000")
         rows = conn.execute(
             "SELECT label, chain, address FROM wallets WHERE COALESCE(active, 1)=1 ORDER BY id"
         ).fetchall()

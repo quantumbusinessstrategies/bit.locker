@@ -37,8 +37,9 @@ def main() -> None:
     store.normalize_required_inputs()
     store.normalize_execution_state()
 
-    with sqlite3.connect(dashboard.DB_PATH) as conn:
+    with sqlite3.connect(dashboard.DB_PATH, timeout=30) as conn:
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA busy_timeout=30000")
         st.session_state["show_vault"] = True
         st.session_state["user_profile_vault_open"] = True
         if "vault_focus" not in st.session_state:

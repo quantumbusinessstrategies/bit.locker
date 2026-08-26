@@ -117,8 +117,9 @@ def log(log_path: Path, message: str) -> None:
 
 
 def counts(root: Path) -> dict[str, object]:
-    conn = sqlite3.connect(database_path(root))
+    conn = sqlite3.connect(database_path(root), timeout=30)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout=30000")
     output: dict[str, object] = {}
     for table in ["opportunities", "claim_queue", "source_candidates", "approved_sources", "rejected_sources"]:
         output[table] = conn.execute(f"SELECT COUNT(*) c FROM {table}").fetchone()["c"]
@@ -211,8 +212,9 @@ from storage.sqlite_store import SQLiteStore
 from user_context.user_context_store import UserContextStore
 DB = Path(os.getenv('DATABASE_PATH', 'data/gain_entity.sqlite3'))
 ROOT = Path('.').resolve()
-conn = sqlite3.connect(DB)
+conn = sqlite3.connect(DB, timeout=30)
 conn.row_factory = sqlite3.Row
+conn.execute('PRAGMA busy_timeout=30000')
 items = build_final_approval_queue(rows_for_final_approval(conn, limit=1000))
 safe_items = [item for item in items if item.safe_to_mark_submitted and item.final_action_type == 'final_submit']
 now = datetime.now(timezone.utc).isoformat()
@@ -338,8 +340,9 @@ from user_context.user_context_store import UserContextStore
 root = Path('.').resolve()
 ctx = apply_external_authorizations(UserContextStore.for_root(root).load(), external_authorization_rows(root))
 DB = Path(os.getenv('DATABASE_PATH', 'data/gain_entity.sqlite3'))
-conn = sqlite3.connect(DB)
+conn = sqlite3.connect(DB, timeout=30)
 conn.row_factory = sqlite3.Row
+conn.execute('PRAGMA busy_timeout=30000')
 summary = run_completion_engine_pass(conn, ctx, mode='Live Assist', commit=True)
 conn.close()
 print(summary.to_dict())
