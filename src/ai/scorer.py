@@ -92,6 +92,11 @@ def normalize_score(score: dict[str, Any], candidate: dict[str, Any] | None = No
     is_expired_or_closed = _bool(normalized.get("is_expired_or_closed"))
     normalized["is_expired_or_closed"] = is_expired_or_closed
     normalized["application_deadline"] = _iso_date(normalized.get("application_deadline_iso"))
+    is_recurring = _bool(normalized.get("is_recurring"))
+    normalized["is_recurring"] = is_recurring
+    normalized["recurring_interval_days"] = (
+        max(0, int(_number(normalized.get("recurring_interval_days")))) if is_recurring else 0
+    )
     normalized["should_add_to_claim_queue"] = (
         False if is_expired_or_closed else _bool(normalized.get("should_add_to_claim_queue"))
     )

@@ -62,6 +62,7 @@ def run_completion_engine_pass(
     """
 
     expired_count = _expire_overdue_rows(conn, commit=commit)
+    recurred_count = _reharvest_recurring_rows(conn, commit=commit)
     rows = _active_rows(conn, limit)
     engine = ActionEngine(user_context)
     router = DestinationRouter()
@@ -130,7 +131,61 @@ def run_completion_engine_pass(
     if expired_count:
         verb = "Marked" if commit else "Would mark"
         notes.append(f"{verb} {expired_count} item(s) Expired (deadline already passed) and dropped from your queue.")
+    if recurred_count:
+        verb = "Re-queued" if commit else "Would re-queue"
+        notes.append(f"{verb} {recurred_count} recurring gain(s) that are due to be claimed again.")
     return CompletionEngineSummary(scanned=len(rows), notes=notes, **stats)
+
+
+def _reharvest_recurring_rows(conn: Any, *, commit: bool) -> int:
+    """Send already-received recurring gains back through the pipeline once due again.
+
+    Only acts on items the AI explicitly identified as recurring with a stated/implied
+    interval (e.g. a monthly reward) - nothing here guesses at a cadence. This is how a
+    claimed monthly bonus keeps getting claimed every month without you rediscovering it.
+    """
+    rows = conn.execute(
+        """
+        SELECT id, opportunity_id, recurring_interval_days,
+               COALESCE(last_recurred_at, updated_at) AS reference_ts
+        FROM claim_queue
+        WHERE status = 'Received/Paid'
+          AND is_recurring = 1
+          AND COALESCE(recurring_interval_days, 0) > 0
+        """
+    ).fetchall()
+    now_dt = datetime.now(timezone.utc)
+    due_ids: list[int] = []
+    due_opportunity_ids: list[int] = []
+    for row in rows:
+        reference_ts = str(row["reference_ts"] or "")
+        try:
+            reference_dt = datetime.fromisoformat(reference_ts.replace("Z", "+00:00"))
+            if reference_dt.tzinfo is None:
+                reference_dt = reference_dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+        elapsed_days = (now_dt - reference_dt).days
+        if elapsed_days >= int(row["recurring_interval_days"]):
+            due_ids.append(int(row["id"]))
+            due_opportunity_ids.append(int(row["opportunity_id"]))
+    if commit:
+        now = _utc_now()
+        for claim_id, opportunity_id in zip(due_ids, due_opportunity_ids):
+            conn.execute(
+                """
+                UPDATE claim_queue
+                SET status='Qualified', execution_status='', owner_username=NULL,
+                    last_recurred_at=?, updated_at=?
+                WHERE id=?
+                """,
+                (now, now, claim_id),
+            )
+            conn.execute(
+                "UPDATE opportunities SET status='Qualified', updated_at=? WHERE id=?",
+                (now, opportunity_id),
+            )
+    return len(due_ids)
 
 
 def _expire_overdue_rows(conn: Any, *, commit: bool) -> int:

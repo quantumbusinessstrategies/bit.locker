@@ -11,7 +11,7 @@ import sqlite3
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote
 
@@ -217,6 +217,10 @@ DESKTOP_WALLPAPERS = {
     "Classic Teal Hills": "linear-gradient(180deg,#008080 0%,#008080 60%,#1c9e6b 60%,#1c9e6b 100%)",
     "Deep Space": "linear-gradient(180deg,#050014 0%,#0b0630 45%,#1a0f4a 100%)",
     "Terminal Green": "linear-gradient(180deg,#000000 0%,#001a00 100%)",
+    "Money Green": "linear-gradient(180deg,#013220 0%,#0b5d3b 45%,#1f9e5c 75%,#2ecc71 100%)",
+    "Gold Rush": "linear-gradient(180deg,#3d2c00 0%,#7a5c00 40%,#c99a00 70%,#ffd700 100%)",
+    "Vaporwave": "linear-gradient(180deg,#2d1b69 0%,#8b2fc9 40%,#e94584 70%,#ff9a56 100%)",
+    "Midnight Blue": "linear-gradient(180deg,#000814 0%,#001d3d 45%,#003566 75%,#0466c8 100%)",
 }
 DESKTOP_FONTS = {
     "Retro Terminal (VT323)": '"VT323","Courier New",monospace',
@@ -393,21 +397,21 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
         }}
         .win95-titlebar {{
             background: linear-gradient(90deg, {accent}, #1084d0);
-            color: #fff; font-weight: 900; font-size: 15px;
-            padding: 4px 6px; display: flex; justify-content: space-between; align-items: center;
+            color: #fff; font-weight: 900; font-size: 15px; height: 27px; box-sizing: border-box;
+            padding: 4px 6px; display: flex; align-items: center; overflow: hidden;
+            white-space: nowrap; text-overflow: ellipsis;
             font-family: {font_stack}; border: 2px solid #fff; border-bottom: none;
         }}
-        .win95-titlebar-controls span {{
-            display: inline-block; background: #c0c0c0; color: #000;
-            border: 1px solid #fff; border-right-color: #000; border-bottom-color: #000;
-            width: 18px; height: 16px; text-align: center; line-height: 16px;
-            font-size: 11px; font-weight: 900; margin-left: 3px; font-family: sans-serif;
-        }}
+        div[class*="st-key-liveops_minimize_window"] button,
+        div[class*="st-key-liveops_maximize_window"] button,
         div[class*="st-key-liveops_close_window"] button {{
             background: #c0c0c0 !important; color: #000 !important; font-weight: 900 !important;
             border: 1px solid #fff !important; border-right-color: #000 !important; border-bottom-color: #000 !important;
-            border-radius: 0 !important; height: 27px !important;
+            border-radius: 0 !important; height: 27px !important; padding: 0 !important;
+            font-family: sans-serif !important;
         }}
+        div[class*="st-key-liveops_close_window"] button {{ background: #d1273d !important; color: #fff !important; }}
+        div[class*="st-key-liveops_close_window"] button:hover {{ background: #ff4d4d !important; }}
         div[class*="st-key-win95_taskbar"] {{
             position: fixed !important; left: 0; bottom: 0; width: 100%; z-index: 99999;
             background: #c0c0c0; border-top: 2px solid #fff;
@@ -416,13 +420,19 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
         div[class*="st-key-win95_taskbar"] [data-testid="stPopoverButton"] button {{
             background: #c0c0c0 !important; color: #000 !important; font-weight: 900 !important;
             border: 1px solid #fff !important; border-right-color: #000 !important; border-bottom-color: #000 !important;
-            border-radius: 0 !important; font-family: {font_stack} !important; font-size: 15px !important;
-            display: inline-flex !important; align-items: center !important; justify-content: center !important;
-            gap: 6px !important; padding: 4px 10px !important; white-space: nowrap !important;
-            overflow: visible !important;
+            border-radius: 0 !important; font-family: {font_stack} !important;
+            font-size: {min(16, 14 * icon_scale):.0f}px !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            gap: 6px !important; padding: 4px 12px !important; white-space: nowrap !important;
+            overflow: visible !important; min-width: fit-content !important; height: 32px !important;
+            line-height: 1 !important;
         }}
-        div[class*="st-key-win95_taskbar"] [data-testid="stPopoverButton"] button span {{
-            overflow: visible !important; text-overflow: unset !important;
+        div[class*="st-key-win95_taskbar"] [data-testid="stPopoverButton"] button * {{
+            overflow: visible !important; text-overflow: unset !important; white-space: nowrap !important;
+            margin: 0 !important; line-height: 1 !important;
+        }}
+        div[class*="st-key-win95_taskbar"] [data-testid="stHorizontalBlock"] > div:first-child {{
+            min-width: 120px !important;
         }}
         div[class*="st-key-quicklaunch_"] button {{
             background: #dcdcdc !important; color: #000 !important;
@@ -526,6 +536,7 @@ def show_live_ops_route() -> None:
     icon_defs = [
         ("gain_finder", "🎯", "Gain\nFinder"),
         ("pipeline", "📂", "Pipeline"),
+        ("recurring", "♻️", "Recurring\nGains"),
         ("vault", "🔐", "Vault"),
         ("automation", "🔁", "Automation"),
         ("custom_scan", "🔎", "Add\nScan"),
@@ -533,13 +544,19 @@ def show_live_ops_route() -> None:
         ("mode", "🆓" if not paid_mode_on else "💳", "Free /\nPaid"),
         ("task_manager", "📊", "Task\nManager"),
         ("notepad", "📝", "Notepad"),
+        ("paint", "🎨", "Paint"),
+        ("messages", "💬", "Messages"),
         ("console", "🖥️", "Console"),
         ("settings", "⚙️", "Settings"),
     ]
+    quicklaunch_defs = [d for d in icon_defs if d[0] in {
+        "gain_finder", "pipeline", "recurring", "vault", "automation", "mode", "settings",
+    }]
     app_titles = {
         "desktop": "🐸 QuantumGains 95",
         "gain_finder": "🎯 Gain Finder — Needs Your Approval",
         "pipeline": "📂 Pipeline",
+        "recurring": "♻️ Recurring Gains",
         "vault": "🔐 Vault & Profile",
         "automation": "🔁 Automation",
         "custom_scan": "🔎 Add a Personalized Scan",
@@ -547,6 +564,8 @@ def show_live_ops_route() -> None:
         "mode": "🆓 / 💳 Free vs Paid Mode",
         "task_manager": "📊 Task Manager",
         "notepad": "📝 Notepad",
+        "paint": "🎨 Paint",
+        "messages": "💬 Team Messages",
         "console": "🖥️ System Console",
         "settings": "⚙️ Personalize",
     }
@@ -554,26 +573,46 @@ def show_live_ops_route() -> None:
     open_app = st.session_state["liveops_open_app"]
     title = app_titles.get(open_app, open_app)
 
-    icon_col, main_col = st.columns([1, 5], gap="small")
+    if open_app != "desktop":
+        st.session_state.pop("liveops_minimized_app", None)
+    is_maximized = bool(st.session_state.get("liveops_window_maximized")) and open_app != "desktop"
+
+    if is_maximized:
+        icon_col, main_col = st.columns([0.001, 1], gap="small")
+    else:
+        icon_col, main_col = st.columns([1, 5], gap="small")
     with icon_col:
-        st.markdown('<div class="win95-rail-label">🐸 Desktop</div>', unsafe_allow_html=True)
-        for key, emoji, label in icon_defs:
-            if st.button(f"{emoji}\n{label}", key=f"liveops_icon_{key}", use_container_width=True):
-                st.session_state["liveops_open_app"] = key
-                st.rerun()
+        if not is_maximized:
+            st.markdown('<div class="win95-rail-label">🐸 Desktop</div>', unsafe_allow_html=True)
+            for key, emoji, label in icon_defs:
+                if st.button(f"{emoji}\n{label}", key=f"liveops_icon_{key}", use_container_width=True):
+                    st.session_state["liveops_open_app"] = key
+                    st.rerun()
+            minimized_app = st.session_state.get("liveops_minimized_app")
+            if minimized_app:
+                minimized_title = app_titles.get(minimized_app, minimized_app)
+                if st.button(f"🗕 Restore: {minimized_title}", key="liveops_restore_minimized", use_container_width=True):
+                    st.session_state["liveops_open_app"] = st.session_state.pop("liveops_minimized_app")
+                    st.rerun()
 
     with main_col:
-        close_col, title_col = st.columns([1, 11])
-        with close_col:
-            if open_app != "desktop" and st.button("✕", key="liveops_close_window", use_container_width=True):
+        title_text_col, min_col, max_col, close_col = st.columns([9, 1, 1, 1], gap="small")
+        with title_text_col:
+            st.markdown(f'<div class="win95-titlebar">{title}</div>', unsafe_allow_html=True)
+        with min_col:
+            if open_app != "desktop" and st.button("_", key="liveops_minimize_window", use_container_width=True, help="Minimize"):
+                st.session_state["liveops_minimized_app"] = open_app
                 st.session_state["liveops_open_app"] = "desktop"
                 st.rerun()
-        with title_col:
-            st.markdown(
-                f'<div class="win95-titlebar">{title}'
-                f'<span class="win95-titlebar-controls"><span>_</span><span>▢</span></span></div>',
-                unsafe_allow_html=True,
-            )
+        with max_col:
+            if open_app != "desktop" and st.button("▢", key="liveops_maximize_window", use_container_width=True, help="Maximize / Restore"):
+                st.session_state["liveops_window_maximized"] = not is_maximized
+                st.rerun()
+        with close_col:
+            if open_app != "desktop" and st.button("✕", key="liveops_close_window", use_container_width=True, help="Close"):
+                st.session_state["liveops_open_app"] = "desktop"
+                st.session_state["liveops_window_maximized"] = False
+                st.rerun()
         window_body = st.container(border=(open_app != "desktop"), key="win95_window_body")
 
     with window_body, connect() as conn:
@@ -602,7 +641,11 @@ def show_live_ops_route() -> None:
                     (SELECT COUNT(*) FROM claim_queue WHERE status='Received/Paid') AS received,
                     (SELECT COALESCE(SUM(expected_value_usd),0) FROM claim_queue) AS pipeline_value,
                     (SELECT COALESCE(SUM(expected_value_usd),0) FROM claim_queue
-                        WHERE status IN ('Needs Approval','Connect Needed','Ready to Accept')) AS ready_value
+                        WHERE status IN ('Needs Approval','Connect Needed','Ready to Accept')) AS ready_value,
+                    (SELECT COUNT(*) FROM claim_queue
+                        WHERE status='Submitted' AND (owner_username IS NULL OR owner_username='')) AS zero_click_count,
+                    (SELECT COALESCE(SUM(expected_value_usd),0) FROM claim_queue
+                        WHERE status='Submitted' AND (owner_username IS NULL OR owner_username='')) AS zero_click_value
                 """
             ).fetchone()
             quick = dict(quick_counts) if quick_counts else {}
@@ -616,7 +659,7 @@ def show_live_ops_route() -> None:
                     FROM claim_queue cq
                     JOIN opportunities o ON o.id = cq.opportunity_id
                     WHERE cq.status IN ('Needs Approval','Connect Needed','Ready to Accept')
-                    ORDER BY cq.expected_value_usd DESC
+                    ORDER BY (COALESCE(cq.fastest_gain_score,0) + COALESCE(cq.highest_value_score,0)) DESC
                     LIMIT 1
                     """
                 ).fetchone()
@@ -641,10 +684,15 @@ def show_live_ops_route() -> None:
                     unsafe_allow_html=True,
                 )
 
-            stat_cols = st.columns(3)
+            stat_cols = st.columns(4)
             stat_cols[0].metric("Needs your approval", needs_you_count)
             stat_cols[1].metric("Received / Paid", int(quick.get("received") or 0))
             stat_cols[2].metric("Pipeline value", f"${float(quick.get('pipeline_value') or 0):,.0f}")
+            stat_cols[3].metric(
+                "Auto-claimed, zero clicks",
+                int(quick.get("zero_click_count") or 0),
+                delta=f"${float(quick.get('zero_click_value') or 0):,.0f} value",
+            )
 
             st.caption(
                 "🤖 On the live server this runs 24/7 on its own schedule in Live Assist mode: it discovers, "
@@ -845,11 +893,12 @@ def show_live_ops_route() -> None:
             for stage_index, stage in enumerate(stage_order):
                 rows = pd.read_sql_query(
                     """
-                    SELECT cq.id, cq.status, o.title, cq.expected_value_usd, cq.fastest_gain_score
+                    SELECT cq.id, cq.status, o.title, cq.expected_value_usd, cq.fastest_gain_score,
+                           cq.highest_value_score
                     FROM claim_queue cq
                     JOIN opportunities o ON o.id = cq.opportunity_id
                     WHERE cq.status = ?
-                    ORDER BY cq.fastest_gain_score DESC
+                    ORDER BY (COALESCE(cq.fastest_gain_score,0) + COALESCE(cq.highest_value_score,0)) DESC
                     LIMIT 200
                     """,
                     conn,
@@ -883,6 +932,56 @@ def show_live_ops_route() -> None:
                             conn.commit()
                             st.success("Updated.")
                             st.rerun()
+
+        elif open_app == "recurring":
+            st.markdown("### ♻️ Recurring Gains — the ones that harvest themselves")
+            st.caption(
+                "When the AI recognizes a gain repeats on a schedule (monthly rewards, quarterly "
+                "boxes, recurring cashback), it tracks the interval here. Once you've received one, "
+                "it automatically comes back around and re-enters your queue on its own — no "
+                "rediscovering it yourself."
+            )
+            recurring_rows = pd.read_sql_query(
+                """
+                SELECT cq.id, cq.status, o.title, cq.expected_value_usd, cq.recurring_interval_days,
+                       cq.last_recurred_at, cq.updated_at
+                FROM claim_queue cq
+                JOIN opportunities o ON o.id = cq.opportunity_id
+                WHERE cq.is_recurring = 1 AND COALESCE(cq.recurring_interval_days, 0) > 0
+                ORDER BY cq.expected_value_usd DESC
+                LIMIT 200
+                """,
+                conn,
+            )
+            if recurring_rows.empty:
+                st.info(
+                    "No recurring gains tracked yet — as the AI finds ones that explicitly repeat "
+                    "(stated or clearly implied), they'll show up here automatically."
+                )
+            else:
+                total_recurring_value = float(recurring_rows["expected_value_usd"].fillna(0).sum())
+                st.markdown(
+                    f"**${total_recurring_value:,.0f}** in tracked recurring value across "
+                    f"**{len(recurring_rows)}** gains."
+                )
+                for row in recurring_rows.itertuples():
+                    reference = row.last_recurred_at or row.updated_at
+                    next_due = "unknown"
+                    if reference:
+                        try:
+                            ref_dt = datetime.fromisoformat(str(reference).replace("Z", "+00:00"))
+                            if ref_dt.tzinfo is None:
+                                ref_dt = ref_dt.replace(tzinfo=timezone.utc)
+                            due_dt = ref_dt + timedelta(days=int(row.recurring_interval_days))
+                            next_due = due_dt.strftime("%b %d, %Y")
+                        except (ValueError, TypeError):
+                            pass
+                    with st.container(border=True):
+                        st.markdown(
+                            f"**${float(row.expected_value_usd or 0):,.0f} · every "
+                            f"{int(row.recurring_interval_days)} days · {row.title[:80]}**"
+                        )
+                        st.caption(f"Status: {row.status} · Next due: {next_due}")
 
         elif open_app == "task_manager":
             st.caption("Real background processes and pipeline throughput — not a mockup.")
@@ -921,6 +1020,112 @@ def show_live_ops_route() -> None:
                 _desktop_notes_path().parent.mkdir(parents=True, exist_ok=True)
                 _desktop_notes_path().write_text(notes_value, encoding="utf-8")
                 st.success("Saved.")
+
+        elif open_app == "paint":
+            st.caption("Because a Windows 95 desktop needs Paint. Draw, then save it to your computer.")
+            components.html(
+                """
+                <div style="font-family: sans-serif;">
+                  <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+                    <input type="color" id="qg-paint-color" value="#000000" style="width:40px;height:32px;border:2px solid #808080;">
+                    <label style="font-size:13px;">Brush
+                      <input type="range" id="qg-paint-size" min="1" max="40" value="4" style="vertical-align:middle;">
+                    </label>
+                    <button id="qg-paint-clear" style="padding:6px 12px;background:#c0c0c0;border:2px outset #fff;cursor:pointer;">Clear</button>
+                    <button id="qg-paint-save" style="padding:6px 12px;background:#c0c0c0;border:2px outset #fff;cursor:pointer;">💾 Save PNG</button>
+                  </div>
+                  <canvas id="qg-paint-canvas" width="760" height="420" style="background:#fff;border:2px inset #808080; touch-action:none; cursor:crosshair;"></canvas>
+                </div>
+                <script>
+                (function() {
+                  const canvas = document.getElementById('qg-paint-canvas');
+                  const ctx = canvas.getContext('2d');
+                  ctx.fillStyle = '#fff';
+                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+                  ctx.lineCap = 'round';
+                  ctx.lineJoin = 'round';
+                  let drawing = false;
+                  let last = null;
+                  function pos(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    return {x: clientX - rect.left, y: clientY - rect.top};
+                  }
+                  function start(e) { drawing = true; last = pos(e); e.preventDefault(); }
+                  function stop() { drawing = false; last = null; }
+                  function move(e) {
+                    if (!drawing) return;
+                    const p = pos(e);
+                    ctx.strokeStyle = document.getElementById('qg-paint-color').value;
+                    ctx.lineWidth = document.getElementById('qg-paint-size').value;
+                    ctx.beginPath();
+                    ctx.moveTo(last.x, last.y);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.stroke();
+                    last = p;
+                    e.preventDefault();
+                  }
+                  canvas.addEventListener('mousedown', start);
+                  canvas.addEventListener('mousemove', move);
+                  window.addEventListener('mouseup', stop);
+                  canvas.addEventListener('touchstart', start, {passive:false});
+                  canvas.addEventListener('touchmove', move, {passive:false});
+                  canvas.addEventListener('touchend', stop);
+                  document.getElementById('qg-paint-clear').addEventListener('click', function() {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                  });
+                  document.getElementById('qg-paint-save').addEventListener('click', function() {
+                    const link = document.createElement('a');
+                    link.download = 'quantumgains-paint.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                  });
+                })();
+                </script>
+                """,
+                height=490,
+            )
+
+        elif open_app == "messages":
+            st.markdown("### 💬 Team Messages")
+            st.caption(
+                "A shared notice board for everyone logged into this desktop with their own code - "
+                "not live/instant chat, it's a running log everyone sees on their next page load. "
+                "Good for \"hey, this reward site is down\" or \"I claimed the monthly one already.\""
+            )
+            messages_path = ROOT_DIR / "data" / "team_messages.json"
+            existing_messages: list[dict[str, str]] = []
+            if messages_path.exists():
+                try:
+                    loaded = json.loads(messages_path.read_text(encoding="utf-8"))
+                    if isinstance(loaded, list):
+                        existing_messages = loaded
+                except Exception:  # noqa: BLE001
+                    existing_messages = []
+            new_message = st.text_input("Message", key="liveops_new_message", max_chars=500)
+            if st.button("📨 Send", type="primary") and new_message.strip():
+                existing_messages.append({
+                    "from": _current_owner_username(),
+                    "text": new_message.strip(),
+                    "at": datetime.now(timezone.utc).isoformat(),
+                })
+                existing_messages = existing_messages[-200:]
+                messages_path.parent.mkdir(parents=True, exist_ok=True)
+                messages_path.write_text(json.dumps(existing_messages, indent=2), encoding="utf-8")
+                st.rerun()
+            st.markdown("---")
+            if not existing_messages:
+                st.info("No messages yet. Say hi.")
+            else:
+                for msg in reversed(existing_messages[-50:]):
+                    try:
+                        when = datetime.fromisoformat(str(msg.get("at") or "")).strftime("%b %d, %I:%M %p")
+                    except ValueError:
+                        when = ""
+                    st.markdown(f"**{html.escape(str(msg.get('from') or 'someone'))}** · {when}")
+                    st.caption(html.escape(str(msg.get("text") or "")))
 
         elif open_app == "console":
             st.caption(
@@ -1014,11 +1219,12 @@ def show_live_ops_route() -> None:
             st.caption("This is the only list you really need to check day to day.")
             needs_you = pd.read_sql_query(
                 """
-                SELECT cq.id, cq.status, o.title, cq.expected_value_usd, cq.fastest_gain_score
+                SELECT cq.id, cq.status, o.title, cq.expected_value_usd, cq.fastest_gain_score,
+                       cq.highest_value_score
                 FROM claim_queue cq
                 JOIN opportunities o ON o.id = cq.opportunity_id
                 WHERE cq.status IN ('Needs Approval', 'Connect Needed', 'Ready to Accept')
-                ORDER BY cq.fastest_gain_score DESC
+                ORDER BY (COALESCE(cq.fastest_gain_score,0) + COALESCE(cq.highest_value_score,0)) DESC
                 LIMIT 200
                 """,
                 conn,
@@ -1085,7 +1291,7 @@ def show_live_ops_route() -> None:
     now_str = datetime.now().strftime("%I:%M %p")
     taskbar = st.container(key="win95_taskbar")
     with taskbar:
-        taskbar_cols = st.columns([1.8, 6.2, 3])
+        taskbar_cols = st.columns([2.2, 5.8, 3])
         with taskbar_cols[0]:
             with st.popover("⊞ Start", use_container_width=True):
                 for key, emoji, label in icon_defs:
@@ -1104,8 +1310,8 @@ def show_live_ops_route() -> None:
                 if st.button("🔒  Sign Out", key="startmenu_sign_out", use_container_width=True):
                     _perform_sign_out()
         with taskbar_cols[1]:
-            quick_cols = st.columns(len(icon_defs))
-            for quick_col, (key, emoji, label) in zip(quick_cols, icon_defs):
+            quick_cols = st.columns(len(quicklaunch_defs))
+            for quick_col, (key, emoji, label) in zip(quick_cols, quicklaunch_defs):
                 with quick_col:
                     if st.button(
                         emoji,

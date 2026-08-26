@@ -599,6 +599,14 @@ class SQLiteStore:
                     "UPDATE claim_queue SET application_deadline=? WHERE id=?",
                     (score.get("application_deadline") or None, queue_id),
                 )
+                conn.execute(
+                    "UPDATE claim_queue SET is_recurring=?, recurring_interval_days=? WHERE id=?",
+                    (
+                        _int_bool(score.get("is_recurring")),
+                        int(score.get("recurring_interval_days") or 0),
+                        queue_id,
+                    ),
+                )
                 return queue_id, created
             except sqlite3.IntegrityError:
                 values = self._queue_values(opportunity_id, status, score, prep, now, now)
@@ -708,6 +716,14 @@ class SQLiteStore:
                 conn.execute(
                     "UPDATE claim_queue SET application_deadline=? WHERE id=?",
                     (score.get("application_deadline") or None, queue_id),
+                )
+                conn.execute(
+                    "UPDATE claim_queue SET is_recurring=?, recurring_interval_days=? WHERE id=?",
+                    (
+                        _int_bool(score.get("is_recurring")),
+                        int(score.get("recurring_interval_days") or 0),
+                        queue_id,
+                    ),
                 )
                 return queue_id, False
 
@@ -1892,6 +1908,9 @@ class SQLiteStore:
             "last_execution_at": "TEXT",
             "owner_username": "TEXT",
             "application_deadline": "TEXT",
+            "is_recurring": "INTEGER",
+            "recurring_interval_days": "INTEGER",
+            "last_recurred_at": "TEXT",
         }
         for name, ddl in columns.items():
             if name not in existing:

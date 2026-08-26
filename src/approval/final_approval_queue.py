@@ -41,6 +41,35 @@ LOW_RISK_BULK_APPROVAL_TERMS = [
     "signup bonus",
     "no purchase",
     "no-purchase",
+    "welcome kit",
+    "welcome bonus",
+    "free gift",
+    "free coin",
+    "free merchandise",
+    "free swag",
+    "free stickers",
+    "free samples by mail",
+    "mailed to you",
+    "shipped to your door",
+    "referral bonus",
+    "loyalty reward",
+    "birthday freebie",
+    "free trial no card",
+    "review unit",
+    "reviewer program",
+    "influencer kit",
+    "ambassador program",
+    "ambassador application",
+    "brand ambassador",
+    "creator fund",
+    "creator rewards",
+    "free ticket",
+    "free membership",
+    "student discount signup",
+    "free download",
+    "digital freebie",
+    "rewards points signup",
+    "free trial subscription",
 ]
 
 OWNER_ONLY_CLAIM_TERMS = [
@@ -155,6 +184,17 @@ def rows_for_final_approval(conn: Any, limit: int = 1000) -> list[dict[str, Any]
                     OR lower(o.title) LIKE '%paid study%'
                     OR lower(o.title) LIKE '%gift card rewards%'
                     OR lower(o.title) LIKE '%beta tester%'
+                    OR lower(o.title) LIKE '%welcome kit%'
+                    OR lower(o.title) LIKE '%welcome bonus%'
+                    OR lower(o.title) LIKE '%free gift%'
+                    OR lower(o.title) LIKE '%free coin%'
+                    OR lower(o.title) LIKE '%free merchandise%'
+                    OR lower(o.title) LIKE '%referral bonus%'
+                    OR lower(o.title) LIKE '%loyalty reward%'
+                    OR lower(o.title) LIKE '%review unit%'
+                    OR lower(o.title) LIKE '%ambassador%'
+                    OR lower(o.title) LIKE '%creator fund%'
+                    OR lower(o.title) LIKE '%creator rewards%'
                  )
                 THEN 0
                 ELSE 1
