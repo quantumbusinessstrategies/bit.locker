@@ -313,7 +313,7 @@ for item in safe_items:
                 item.claim_queue_id,
             ),
         )
-conn.commit()
+    conn.commit()
 conn.close()
 SQLiteStore(DB).normalize_required_inputs()
 print({

@@ -101,8 +101,7 @@ def run_autonomy_pump(
             )
             record_browser_execution_run(root_dir, plan, status, inspection.note)
             queue_rows_updated += _write_form_inspection(conn, item, inspection.to_dict(), user_context)
-
-        conn.commit()
+            conn.commit()
 
     return AutonomyPumpSummary(
         magic_lanes_scanned=magic.lanes_scanned,
