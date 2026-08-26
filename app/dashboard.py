@@ -379,9 +379,9 @@ def inject_win95_desktop_style(prefs: dict[str, object]) -> None:
             font-family: {font_stack} !important;
         }}
         [data-testid="stIconMaterial"] {{
-            font-family: "Material Symbols Outlined", "Material Symbols Rounded", sans-serif !important;
+            display: none !important;
         }}
-        div[class*="st-key-win95_taskbar"] [data-testid="stPopoverButton"] [data-testid="stIconMaterial"] {{
+        [data-testid="stExpanderIcon"] {{
             display: none !important;
         }}
         div[class*="st-key-liveops_icon_"] button {{
