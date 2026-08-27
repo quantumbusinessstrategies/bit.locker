@@ -1,7 +1,19 @@
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass
 from typing import Any
+
+# Roundup/listicle article titles ("25 Best X Sites", "Top 10 Legit Ways to...") describe
+# opportunities elsewhere rather than being one themselves - a form found on a page like this
+# (e.g. a newsletter signup) is not the actual program, so these must never auto-submit.
+LISTICLE_TITLE_PATTERN = re.compile(
+    r"^\s*\d+\s+(best|legit|top|free|ways|sites|apps|companies)\b"
+    r"|\b(the\s+)?best\s+\w+\s+(sites|apps|programs|companies)\b"
+    r"|\btop\s+\d+\b"
+    r"|\d+\s+ways\b",
+    re.IGNORECASE,
+)
 
 
 FINAL_ACTION_TYPES = [
@@ -443,6 +455,9 @@ def _blob(row: dict[str, Any]) -> str:
 
 
 def _is_low_risk_bulk_approval(row: dict[str, Any]) -> bool:
+    title = str(row.get("title") or "")
+    if LISTICLE_TITLE_PATTERN.search(title):
+        return False
     text = _blob(row)
     if not any(term in text for term in LOW_RISK_BULK_APPROVAL_TERMS):
         return False
