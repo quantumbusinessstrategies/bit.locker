@@ -66,7 +66,7 @@ def main() -> int:
             env,
             "bulk_accept_local_safe_final_submit_only",
             [sys.executable, "-c", BULK_CODE],
-            timeout=180,
+            timeout=900,
         )
         run_step(
             log_path,
