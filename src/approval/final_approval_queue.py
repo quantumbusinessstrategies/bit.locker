@@ -82,6 +82,14 @@ LOW_RISK_BULK_APPROVAL_TERMS = [
     "digital freebie",
     "rewards points signup",
     "free trial subscription",
+    "wallet address only airdrop",
+    "airdrop no gas no signing",
+    "mail in rebate",
+    "mail-in rebate",
+    "instant rebate",
+    "collectible coin",
+    "cash back app signup",
+    "free stock share",
 ]
 
 OWNER_ONLY_CLAIM_TERMS = [
@@ -144,6 +152,7 @@ def rows_for_final_approval(conn: Any, limit: int = 1000) -> list[dict[str, Any]
             cq.id,
             cq.status,
             cq.execution_status,
+            cq.converts_to_paid_trial,
             o.title,
             o.url,
             cq.expected_value_usd,
@@ -367,6 +376,11 @@ def _item_from_row(row: dict[str, Any], action_type: str) -> FinalApprovalItem:
 
 
 def _is_bulk_safe_submit(row: dict[str, Any], action_type: str) -> bool:
+    # A trial that converts to a real charge later is future financial exposure -
+    # that needs a human's eyes once, same as any other payment-adjacent gate, even
+    # though nothing is charged today. Never let this slip through unattended.
+    if row.get("converts_to_paid_trial"):
+        return False
     risk = str(row.get("risk_level") or "unknown").lower()
     return (
         action_type == "final_submit"

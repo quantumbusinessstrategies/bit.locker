@@ -97,6 +97,11 @@ def normalize_score(score: dict[str, Any], candidate: dict[str, Any] | None = No
     normalized["recurring_interval_days"] = (
         max(0, int(_number(normalized.get("recurring_interval_days")))) if is_recurring else 0
     )
+    converts_to_paid_trial = _bool(normalized.get("converts_to_paid_trial"))
+    normalized["converts_to_paid_trial"] = converts_to_paid_trial
+    normalized["trial_days_before_charge"] = (
+        max(0, int(_number(normalized.get("trial_days_before_charge")))) if converts_to_paid_trial else 0
+    )
     normalized["should_add_to_claim_queue"] = (
         False if is_expired_or_closed else _bool(normalized.get("should_add_to_claim_queue"))
     )

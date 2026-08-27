@@ -65,6 +65,7 @@ from tracking.lifecycle_tracker import (  # noqa: E402
     rows_for_lifecycle,
 )
 from tracking.received_paid import mark_received_paid, received_paid_rows  # noqa: E402
+from tracking.trial_reminders import maybe_create_trial_cancel_reminder  # noqa: E402
 from intelligence import opportunity_ranker  # noqa: E402
 from config import load_yaml_file  # noqa: E402
 from discovery.diversity_guard import DiversityGuard  # noqa: E402
@@ -12043,6 +12044,26 @@ def apply_claim_status(conn: sqlite3.Connection, claim_queue_id: int, status: st
             "UPDATE opportunities SET status=?, updated_at=? WHERE id=?",
             (status, now, opportunity["opportunity_id"]),
         )
+    if status in ("Submitted", "Received/Paid"):
+        trial_row = conn.execute(
+            """
+            SELECT cq.converts_to_paid_trial, cq.trial_days_before_charge, cq.official_link, o.title
+            FROM claim_queue cq
+            LEFT JOIN opportunities o ON o.id = cq.opportunity_id
+            WHERE cq.id=?
+            """,
+            (claim_queue_id,),
+        ).fetchone()
+        if trial_row and trial_row["converts_to_paid_trial"]:
+            maybe_create_trial_cancel_reminder(
+                ROOT_DIR,
+                claim_queue_id,
+                str(trial_row["title"] or "Untitled"),
+                bool(trial_row["converts_to_paid_trial"]),
+                int(trial_row["trial_days_before_charge"] or 0),
+                link=str(trial_row["official_link"] or ""),
+                username=_current_owner_username(),
+            )
     if status == "Received/Paid":
         existing = conn.execute(
             "SELECT id FROM received_log WHERE claim_queue_id=?",

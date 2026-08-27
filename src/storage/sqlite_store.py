@@ -607,6 +607,14 @@ class SQLiteStore:
                         queue_id,
                     ),
                 )
+                conn.execute(
+                    "UPDATE claim_queue SET converts_to_paid_trial=?, trial_days_before_charge=? WHERE id=?",
+                    (
+                        _int_bool(score.get("converts_to_paid_trial")),
+                        int(score.get("trial_days_before_charge") or 0),
+                        queue_id,
+                    ),
+                )
                 return queue_id, created
             except sqlite3.IntegrityError:
                 values = self._queue_values(opportunity_id, status, score, prep, now, now)
@@ -722,6 +730,14 @@ class SQLiteStore:
                     (
                         _int_bool(score.get("is_recurring")),
                         int(score.get("recurring_interval_days") or 0),
+                        queue_id,
+                    ),
+                )
+                conn.execute(
+                    "UPDATE claim_queue SET converts_to_paid_trial=?, trial_days_before_charge=? WHERE id=?",
+                    (
+                        _int_bool(score.get("converts_to_paid_trial")),
+                        int(score.get("trial_days_before_charge") or 0),
                         queue_id,
                     ),
                 )
@@ -1913,6 +1929,8 @@ class SQLiteStore:
             "is_recurring": "INTEGER",
             "recurring_interval_days": "INTEGER",
             "last_recurred_at": "TEXT",
+            "converts_to_paid_trial": "INTEGER",
+            "trial_days_before_charge": "INTEGER",
         }
         for name, ddl in columns.items():
             if name not in existing:

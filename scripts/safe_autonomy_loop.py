@@ -209,6 +209,7 @@ from connectors.connector_status import apply_external_authorizations
 from connectors.external_authorizations import external_authorization_rows
 from execution.browser_execution import build_browser_execution_plan, execute_safe_official_form, record_browser_execution_run
 from storage.sqlite_store import SQLiteStore
+from tracking.trial_reminders import maybe_create_trial_cancel_reminder
 from user_context.user_context_store import UserContextStore
 DB = Path(os.getenv('DATABASE_PATH', 'data/gain_entity.sqlite3'))
 ROOT = Path('.').resolve()
@@ -313,6 +314,16 @@ for item in safe_items:
                 item.claim_queue_id,
             ),
         )
+        if result.submitted and detail_dict.get('converts_to_paid_trial'):
+            maybe_create_trial_cancel_reminder(
+                ROOT,
+                item.claim_queue_id,
+                str(detail_dict.get('title') or 'Untitled'),
+                bool(detail_dict.get('converts_to_paid_trial')),
+                int(detail_dict.get('trial_days_before_charge') or 0),
+                link=str(detail_dict.get('official_link') or ''),
+                username='owner',
+            )
     conn.commit()
 conn.close()
 SQLiteStore(DB).normalize_required_inputs()
