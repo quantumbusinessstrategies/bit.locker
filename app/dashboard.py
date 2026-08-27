@@ -953,9 +953,22 @@ def show_live_ops_route() -> None:
                         )
                     with button_col:
                         if st.button("Apply", key=f"liveops_apply_{stage}", use_container_width=True, type="primary"):
-                            apply_claim_status(conn, selected_id, STATUS_ACTIONS[selected_action])
+                            new_status = STATUS_ACTIONS[selected_action]
+                            apply_claim_status(conn, selected_id, new_status)
+                            if new_status not in ("Rejected", "Dead End", "Later"):
+                                _stamp_claim_owner_if_unset(conn, selected_id, _current_owner_username())
                             conn.commit()
-                            st.success("Updated.")
+                            if new_status in ("Rejected", "Dead End", "Later"):
+                                st.success("Updated.")
+                            else:
+                                summary = run_completion_engine_pass(
+                                    conn,
+                                    load_effective_user_context(),
+                                    mode=str(control.get("execution_mode") or "Dry Run"),
+                                    commit=str(control.get("execution_mode") or "Dry Run") != "Dry Run",
+                                )
+                                conn.commit()
+                                st.success(f"Updated and pushed forward: {_format_pass_summary(summary)}")
                             st.rerun()
 
         elif open_app == "recurring":
